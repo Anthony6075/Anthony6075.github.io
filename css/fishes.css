@@ -1,5 +1,6 @@
 #footer
-  #jsi-flying-fish-container {
+  #jsi-flying-fish-container
+    canvas {
     margin-bottom: -0.5rem;
     display: block;
     width: 100%;
