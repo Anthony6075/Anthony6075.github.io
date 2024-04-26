@@ -1,8 +1,10 @@
-#footer
-  #jsi-flying-fish-container
-    canvas {
-    margin-bottom: -0.5rem;
-    display: block;
-    width: 100%;
-    height: 200px;
-  }
+#jsi-flying-fish-container > canvas {
+  margin-bottom: -0.5rem;
+  display: block;
+  width: 100%;
+  height: 200px;
+}
+
+#footer {
+  overflow: overlay;
+}
