@@ -97,7 +97,6 @@ function getRandom(option) {
 }
 
 function startSakura() {
-    console.log('sakura.js startSakura')
     requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.oRequestAnimationFrame;
     var canvas = document.createElement('canvas'),
         cxt;
