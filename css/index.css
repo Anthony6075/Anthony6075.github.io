@@ -3572,7 +3572,34 @@ h1.page-title + .tag-cloud-list {
   font-size: 95%;
 }
 @media screen and (min-width: 768px) {
-  #post-info #post-meta > .meta-secondline > span:first-child {
+  #post-info #post-meta > .meta-secondline > .tag_share:after {
+    display: block;
+    clear: both;
+    content: '';
+  }
+  #post-info #post-meta > .meta-secondline > .tag_share .post-meta__tag-list {
+    display: inline-block;
+  }
+  #post-info #post-meta > .meta-secondline > .tag_share .post-meta__tags {
+    display: inline-block;
+    margin: 8px 8px 8px 0;
+    padding: 0 12px;
+    width: fit-content;
+    border: 1px solid #49b1f5;
+    border-radius: 12px;
+    color: #49b1f5;
+    font-size: 0.85em;
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    -ms-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+  }
+  #post-info #post-meta > .meta-secondline > .tag_share .post-meta__tags:hover {
+    background: #49b1f5;
+    color: var(--white);
+  }
+  #post-info #post-meta > .meta-thirdline > span:first-child {
     display: none;
   }
 }
@@ -3581,7 +3608,8 @@ h1.page-title + .tag-cloud-list {
     font-size: 90%;
   }
   #post-info #post-meta > .meta-firstline,
-  #post-info #post-meta > .meta-secondline {
+  #post-info #post-meta > .meta-secondline,
+  #post-info #post-meta > .meta-thirdline {
     display: inline;
   }
 }
@@ -3935,28 +3963,6 @@ h1.page-title + .tag-cloud-list {
   display: block;
   clear: both;
   content: '';
-}
-#post .tag_share .post-meta__tag-list {
-  display: inline-block;
-}
-#post .tag_share .post-meta__tags {
-  display: inline-block;
-  margin: 8px 8px 8px 0;
-  padding: 0 12px;
-  width: fit-content;
-  border: 1px solid #49b1f5;
-  border-radius: 12px;
-  color: #49b1f5;
-  font-size: 0.85em;
-  -webkit-transition: all 0.2s ease-in-out;
-  -moz-transition: all 0.2s ease-in-out;
-  -o-transition: all 0.2s ease-in-out;
-  -ms-transition: all 0.2s ease-in-out;
-  transition: all 0.2s ease-in-out;
-}
-#post .tag_share .post-meta__tags:hover {
-  background: #49b1f5;
-  color: var(--white);
 }
 #post .tag_share .post_share {
   display: inline-block;
