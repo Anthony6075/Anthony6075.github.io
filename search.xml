@@ -4,6 +4,37 @@
   
     
     <entry>
+      <title>Linux生成动态库</title>
+      <link href="/2024/05/05/linux-generate-shared-lib/"/>
+      <url>/2024/05/05/linux-generate-shared-lib/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-生成动态链接库"><a href="#1-生成动态链接库" class="headerlink" title="1. 生成动态链接库"></a>1. 生成动态链接库</h1><p>使用<code>g++</code>命令把多个静态库和目标文件生成动态库</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">g++ -Wl,--whole-archive -l:&lt;libfirst.a&gt; -l:&lt;libsecond.a&gt; ...</span><br><span class="line">    -Wl,--no-whole-archive</span><br><span class="line">    -l:&lt;libthird.a&gt; ...</span><br><span class="line">    &lt;object_first.o&gt; &lt;object_second.o&gt; ...</span><br><span class="line">    -Wl,-L&lt;lib_path&gt;</span><br><span class="line">    -shared</span><br><span class="line">    -o &lt;libshared.so&gt;</span><br></pre></td></tr></table></figure><ol><li><p><code>-Wl,--whole-archive</code>后指定需要包括其中所有目标文件的库</p></li><li><p><code>-Wl,--no-whole-archive</code>用以取消<code>-Wl,--whole-archive</code>的后续作用</p></li><li><p><code>-Wl,-L&lt;lib_path&gt;</code>用以添加库文件查找目录</p></li><li><p><code>-shared</code>表明此次链接要创建一个动态库</p></li><li><p><code>-o &lt;libshared.so&gt;</code>指定要创建的动态库文件名</p></li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+          <category> linker </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> shell </tag>
+            
+            <tag> linker </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Linux GDB反向执行</title>
       <link href="/2024/05/01/linux-gdb-reverse-execution/"/>
       <url>/2024/05/01/linux-gdb-reverse-execution/</url>
@@ -159,16 +190,18 @@
     
     
     <entry>
-      <title>Linux合并静态库</title>
-      <link href="/2024/04/30/linux-merge-static-lib/"/>
-      <url>/2024/04/30/linux-merge-static-lib/</url>
+      <title>Linux生成静态库</title>
+      <link href="/2024/04/30/linux-generate-static-lib/"/>
+      <url>/2024/04/30/linux-generate-static-lib/</url>
       
-        <content type="html"><![CDATA[<h1 id="1-使用ar-M-merge-script-命令"><a href="#1-使用ar-M-merge-script-命令" class="headerlink" title="1. 使用ar -M [ &lt; merge.script ]命令"></a>1. 使用<code>ar -M [ &lt; merge.script ]</code>命令</h1><p>写一个脚本<code>merge.script</code>，将脚本重定向给<code>ar -M</code>命令的stdin。</p><p>使用<code>create</code>传入输出的静态库文件名，<code>addlib</code>传入输入的静态库，<code>addmod</code>传入输入的目标文件，最后调用<code>save</code>和<code>end</code>。</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">create libmerged.a</span><br><span class="line">addlib libfirst.a</span><br><span class="line">addlib libsecond.a</span><br><span class="line">...</span><br><span class="line">addmod object_first.o</span><br><span class="line">addmod object_second.o</span><br><span class="line">...</span><br><span class="line">save</span><br><span class="line">end</span><br></pre></td></tr></table></figure><h1 id="2-注意排列顺序"><a href="#2-注意排列顺序" class="headerlink" title="2. 注意排列顺序"></a>2. 注意排列顺序</h1><p>把必须包括其所有符号的输入库放在前面，因为在后面库中包含重复符号名的时候<strong>可能</strong>直接丢弃以前面为准。</p><h1 id="3-参考"><a href="#3-参考" class="headerlink" title="3. 参考"></a>3. 参考</h1><ul><li><p><a href="https://stackoverflow.com/a/23621751/18781047">stackoverflow</a></p></li><li><p><a href="https://sourceware.org/binutils/docs/binutils/ar-scripts.html">文档</a></p></li></ul>]]></content>
+        <content type="html"><![CDATA[<h1 id="1-使用ar-M-merge-script-命令"><a href="#1-使用ar-M-merge-script-命令" class="headerlink" title="1. 使用ar -M [ &lt; merge.script ]命令"></a>1. 使用<code>ar -M [ &lt; merge.script ]</code>命令</h1><p>写一个脚本<code>merge.script</code>，将脚本重定向给<code>ar -M</code>命令的stdin。</p><p>使用<code>create</code>传入输出的静态库文件名，<code>addlib</code>传入输入的静态库，<code>addmod</code>传入输入的目标文件，最后调用<code>save</code>和<code>end</code>。</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">create &lt;libmerged.a&gt;</span><br><span class="line">addlib &lt;libfirst.a&gt;</span><br><span class="line">addlib &lt;libsecond.a&gt;</span><br><span class="line">...</span><br><span class="line">addmod &lt;object_first.o&gt;</span><br><span class="line">addmod &lt;object_second.o&gt;</span><br><span class="line">...</span><br><span class="line">save</span><br><span class="line">end</span><br></pre></td></tr></table></figure><h1 id="2-注意排列顺序"><a href="#2-注意排列顺序" class="headerlink" title="2. 注意排列顺序"></a>2. 注意排列顺序</h1><p>把必须包括其所有符号的输入库放在前面，因为在后面库中包含重复符号名的时候<strong>可能</strong>直接丢弃以前面为准。</p><h1 id="3-参考"><a href="#3-参考" class="headerlink" title="3. 参考"></a>3. 参考</h1><ul><li><p><a href="https://stackoverflow.com/a/23621751/18781047">stackoverflow</a></p></li><li><p><a href="https://sourceware.org/binutils/docs/binutils/ar-scripts.html">文档</a></p></li></ul>]]></content>
       
       
       <categories>
           
           <category> computer_science </category>
+          
+          <category> linker </category>
           
       </categories>
       
@@ -178,6 +211,8 @@
             <tag> linux </tag>
             
             <tag> shell </tag>
+            
+            <tag> linker </tag>
             
         </tags>
       
@@ -384,6 +419,8 @@
           
           <category> computer_science </category>
           
+          <category> linker </category>
+          
       </categories>
       
       
@@ -394,8 +431,6 @@
             <tag> shell </tag>
             
             <tag> linker </tag>
-            
-            <tag> linking </tag>
             
         </tags>
       
@@ -415,6 +450,8 @@
           
           <category> computer_science </category>
           
+          <category> linker </category>
+          
       </categories>
       
       
@@ -426,11 +463,7 @@
             
             <tag> linker </tag>
             
-            <tag> linking </tag>
-            
             <tag> loader </tag>
-            
-            <tag> loading </tag>
             
         </tags>
       
@@ -450,6 +483,8 @@
           
           <category> computer_science </category>
           
+          <category> linker </category>
+          
       </categories>
       
       
@@ -459,11 +494,7 @@
             
             <tag> linker </tag>
             
-            <tag> linking </tag>
-            
             <tag> loader </tag>
-            
-            <tag> loading </tag>
             
         </tags>
       
@@ -533,6 +564,8 @@
           
           <category> computer_science </category>
           
+          <category> linker </category>
+          
       </categories>
       
       
@@ -541,6 +574,8 @@
             <tag> linux </tag>
             
             <tag> shell </tag>
+            
+            <tag> linker </tag>
             
         </tags>
       
