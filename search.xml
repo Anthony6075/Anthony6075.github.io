@@ -1,0 +1,552 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search> 
+  
+  
+    
+    <entry>
+      <title>Linux GDB反向执行</title>
+      <link href="/2024/05/01/linux-gdb-reverse-execution/"/>
+      <url>/2024/05/01/linux-gdb-reverse-execution/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-应用场景"><a href="#1-应用场景" class="headerlink" title="1. 应用场景"></a>1. 应用场景</h1><p>反向执行(Reverse Execution)应用在：当发现执行太过了的时候，关注的问题可能已经发生了，需要反向执行。</p><p>需要目标环境支持，不是所有目标环境都可以实现反向执行的。</p><h1 id="2-程序执行的记录-record-和重放-replay"><a href="#2-程序执行的记录-record-和重放-replay" class="headerlink" title="2. 程序执行的记录(record)和重放(replay)"></a>2. 程序执行的记录(record)和重放(replay)</h1><p>record会拖慢程序执行速度。</p><p>如果执行日志中包括下一条指令的执行记录，GDB会使用replay mode，此时运行程序不会真正执行代码，而是从执行日志中恢复程序状态。</p><p>否则如果执行日志中不包括下一条指令的执行记录，GDB会使用record mode，此时运行程序会正常执行，但GDB会记录执行日志以备将来replay。</p><p>即使程序运行的平台不支持Reverse Execution，在执行日志记录的范围内，GDB也可以通过replay支持Reverse Execution。</p><p>在反向执行时，如果执行日志包括先前指令的记录，GDB会使用replay mode，否则，如果平台支持反向执行，GDB会使用record mode，如果不支持则stop。</p><h1 id="3-record和replay相关的命令"><a href="#3-record和replay相关的命令" class="headerlink" title="3. record和replay相关的命令"></a>3. record和replay相关的命令</h1><h2 id="3-1-record-METHOD"><a href="#3-1-record-METHOD" class="headerlink" title="3.1 record [METHOD]"></a>3.1 <code>record [METHOD]</code></h2><p>缩写为<code>rec [METHOD]</code>。</p><p>启动process record and replay target。<code>record</code>命令需要在调用<code>run</code>或者<code>start</code>之后调用。<code>METHOD</code>参数可能的取值为：</p><ol><li><p><code>full</code>。默认值；由GDB软件实现；支持反向执行；不支持Non-Stop Mode。</p></li><li><p><code>btrace &lt;format&gt;</code>。依赖硬件支持；允许有限的反向执行。</p></li></ol><h2 id="3-2-record-stop"><a href="#3-2-record-stop" class="headerlink" title="3.2 record stop"></a>3.2 <code>record stop</code></h2><p>缩写为<code>rec s</code>。</p><p>停止process record and replay target，执行日志将被删除，进程或者终止或者保持在最后状态。</p><p>进程退出时该target会自动stop，重新调试需要再调<code>record</code>命令启动target。</p><h2 id="3-3-info-record"><a href="#3-3-info-record" class="headerlink" title="3.3 info record"></a>3.3 <code>info record</code></h2><p>缩写为<code>i rec</code>，展示记录的各种信息。</p><p>对于<code>METHOD</code>为<code>full</code>时，展示信息包括：</p><ol><li><p>当前处于record mode还是replay mode；</p></li><li><p>记录的最小和最大的指令号；</p></li><li><p>执行日志包含的指令数量；</p></li><li><p>等等。</p></li></ol><h2 id="3-4-record-delete"><a href="#3-4-record-delete" class="headerlink" title="3.4 record delete"></a>3.4 <code>record delete</code></h2><p>缩写为<code>rec d</code>。</p><p>在replay mode起作用，删除后续的执行日志并从当前开始记录新的执行日志，即抛弃过去记录的旧未来，开始创建并记录一个新未来。</p><h1 id="4-反向执行相关的命令"><a href="#4-反向执行相关的命令" class="headerlink" title="4. 反向执行相关的命令"></a>4. 反向执行相关的命令</h1><h2 id="4-1-reverse-continue-ignore-count"><a href="#4-1-reverse-continue-ignore-count" class="headerlink" title="4.1 reverse-continue [ignore-count]"></a>4.1 <code>reverse-continue [ignore-count]</code></h2><p>缩写为<code>rc [ignore-count]</code>，反向continue。</p><p>类似continue，遇到断点会停下来。</p><h2 id="4-2-reverse-step-count"><a href="#4-2-reverse-step-count" class="headerlink" title="4.2 reverse-step [count]"></a>4.2 <code>reverse-step [count]</code></h2><p>缩写为<code>rs [count]</code>，反向step。</p><p>类似step，上一行是函数调用的话会进入函数并stop在最后一条语句处。</p><h2 id="4-3-reverse-next-count"><a href="#4-3-reverse-next-count" class="headerlink" title="4.3 reverse-next [count]"></a>4.3 <code>reverse-next [count]</code></h2><p>缩写为<code>rn [count]</code>，反向next。</p><p>类似next，如果当前已经在某函数第一行会导致回到它的caller。</p><h2 id="4-4-reverse-finish"><a href="#4-4-reverse-finish" class="headerlink" title="4.4 reverse-finish"></a>4.4 <code>reverse-finish</code></h2><p>无缩写，反向执行直到当前函数的开始处，就像finish会执行到当前函数的结束处。</p><h2 id="4-5-set-exec-direction-reverse-forward"><a href="#4-5-set-exec-direction-reverse-forward" class="headerlink" title="4.5 set exec-direction [ reverse | forward ]"></a>4.5 <code>set exec-direction [ reverse | forward ]</code></h2><p>设置命令执行方向，受影响的命令包括<code>step</code>，<code>stepi</code>，<code>next</code>，<code>nexti</code>，<code>continue</code>，<code>finish</code>。注意<code>return</code>命令不能反向工作。</p><ol><li><p><code>forward</code>是默认值，正常向前执行。</p></li><li><p><code>reverse</code>时上述受影响命令会自动反向执行。</p></li></ol><h1 id="5-启用record和反向执行"><a href="#5-启用record和反向执行" class="headerlink" title="5. 启用record和反向执行"></a>5. 启用record和反向执行</h1><p>在启用AVX(Advanced Vector Extension)的现代CPU上<code>record</code>命令不能使用，glibc的string相关函数(<code>strlen</code>，<code>memset</code>等等)会使用AVX优化的版本，一般而言，要想使用GDB的反向执行，可能需要重新编译glibc或者修改动态链接器使它不要使用AVX版本的函数。</p><p>但是最近版本的glibc增加了tunables的功能可以容易地避开AVX，使用环境变量<code>GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2</code>来调用GDB，例如：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2 gdb ./my_program</span><br></pre></td></tr></table></figure><p>进入GDB后先调用<code>start</code>，再调用<code>record</code>，然后开始调试即可。</p><p>也可以在shell中配置一下gdb命令别名自动完成上述工作，如下：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">alias</span> rgdb=<span class="string">&#x27;GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2 gdb -q -ex start -ex record&#x27;</span></span><br></pre></td></tr></table></figure><p>接着只需简单调用<code>rgdb</code>即可：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rgdb ./my_program</span><br></pre></td></tr></table></figure><h1 id="6-GDB的一个小bug"><a href="#6-GDB的一个小bug" class="headerlink" title="6. GDB的一个小bug"></a>6. GDB的一个小bug</h1><p>启用record后，在被调试进程运行完毕时，GDB提示是否真地退出程序：</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">The next instruction is syscall exit_group.  It will make the program exit.  Do you want to stop the program?([y] or n)</span><br></pre></td></tr></table></figure><p>但是输入<code>n</code>(即no)才会退出。</p><h1 id="7-参考"><a href="#7-参考" class="headerlink" title="7. 参考"></a>7. 参考</h1><ol><li><p>GDB文档</p><ol><li><p><a href="https://sourceware.org/gdb/current/onlinedocs/gdb.html/Reverse-Execution.html#Reverse-Execution">Running programs backward</a></p></li><li><p><a href="https://sourceware.org/gdb/current/onlinedocs/gdb.html/Process-Record-and-Replay.html#Process-Record-and-Replay">Recording Inferior’s Execution and Replaying It</a></p></li></ol></li><li><p><a href="https://stackoverflow.com/a/61048314/18781047">stackoverflow</a></p></li><li><p><a href="https://gotplt.org/posts/the-story-of-tunables.html">GDB tunables</a></p></li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+          <category> gdb </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> gdb </tag>
+            
+            <tag> shell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Linux GDB Convenience Variables</title>
+      <link href="/2024/05/01/linux-gdb-convenience-var/"/>
+      <url>/2024/05/01/linux-gdb-convenience-var/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-基本介绍"><a href="#1-基本介绍" class="headerlink" title="1. 基本介绍"></a>1. 基本介绍</h1><ul><li><p>形式为以<code>$</code>开头的名字(以<code>$</code>开头的数字不是)</p></li><li><p>无固定类型，甚至可以是结构体或者数组</p></li></ul><h1 id="2-赋值"><a href="#2-赋值" class="headerlink" title="2. 赋值"></a>2. 赋值</h1><p>使用<code>set</code>命令，如<code>set $foo = *object_ptr</code></p><h1 id="3-使用示例"><a href="#3-使用示例" class="headerlink" title="3. 使用示例"></a>3. 使用示例</h1><p>不断使用回车遍历数组：</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">set $i = 0</span><br><span class="line">p arr[$i++]</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+          <category> gdb </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> gdb </tag>
+            
+            <tag> shell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Linux GDB 多线程调试</title>
+      <link href="/2024/05/01/linux-gdb-multi-threaded/"/>
+      <url>/2024/05/01/linux-gdb-multi-threaded/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-All-Stop-Mode"><a href="#1-All-Stop-Mode" class="headerlink" title="1. All-Stop Mode"></a>1. All-Stop Mode</h1><p>这是GDB的默认模式(共两个模式，另一个为Non-Stop Mode)。</p><p>当一个线程stop时(比如因为hit断点)，所有线程都stop。</p><p>类似地，当继续执行这个线程时(比如使用<code>step</code>或者<code>next</code>命令)，所有其他线程也会恢复执行，但它们不受当前线程的<code>step</code>或者<code>next</code>命令控制而自由执行(因为线程调度依赖kernel，而不受GDB控制)，因此可能执行任意条语句。而且当这些其他线程遇到断点时会导致GDB发生自动线程切换，此时原线程的<code>step</code>或者<code>next</code>命令甚至可能还没执行完。</p><h2 id="1-1-锁住OS-scheduler"><a href="#1-1-锁住OS-scheduler" class="headerlink" title="1.1 锁住OS scheduler"></a>1.1 锁住OS scheduler</h2><p>这是为了在恢复执行时只允许一个线程运行。</p><p>scheduler锁定模式有多种，使用命令<code>set scheduler-locking &lt;mode&gt;</code>设置，<code>show scheduler-locking</code>获取。</p><p>可用的模式有：</p><ul><li><p><code>off</code> 无锁定，任意线程可以任意运行。</p></li><li><p><code>on</code> 只有当前线程可以运行，其他线程依然stop。</p></li><li><p><code>step</code> 当单步执行时效果类似<code>on</code>，使用其他执行命令(如<code>continue</code>, <code>until</code>, <code>finish</code>)时类似<code>off</code>。(由于机器不支持此模式，未测试文档中的”单步执行”是不是指<code>step</code>和<code>next</code>命令)</p></li><li><p><code>replay</code> (默认模式)在replay模式时类似于<code>on</code>，在record模式和正常执行时类似<code>off</code>。</p></li></ul><h1 id="2-libthread-db"><a href="#2-libthread-db" class="headerlink" title="2. libthread_db"></a>2. libthread_db</h1><p>GDB使用libthread_db库(字母db指debug)来进行线程调试，它会自动查找和libpthread库相匹配的libthread_db库并初始化，如果不能找到libthread_db，线程调试会被disable。</p><p>在使用<code>start</code>或者<code>run</code>命令启动程序时，GDB会打印libthread_db的信息。</p><p>即便程序只有一个主线程，GDB依然使用libthread_db来enable线程调试。</p><h1 id="3-相关命令"><a href="#3-相关命令" class="headerlink" title="3. 相关命令"></a>3. 相关命令</h1><ul><li><p><code>p $_thread</code>，打印当前线程号。</p></li><li><p><code>info threads [thread-id-list]</code>或者缩写为<code>i th [ids]</code>，查看所有线程或指定的线程。</p></li><li><p><code>thread [THREAD_NUM]</code>或者缩写为<code>t [THREAD_NUM]</code>，切换线程。</p></li><li><p><code>thread name [NAME]</code>，给当前线程设置名字，空的<code>NAME</code>会删除已存在的名字。</p></li><li><p><code>thread apply [thread-id-list | all] &lt;command&gt;</code>，在一些线程上执行命令。(不常用)</p></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+          <category> gdb </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> gdb </tag>
+            
+            <tag> shell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Linux GDB TUI(Text User Interface)</title>
+      <link href="/2024/05/01/linux-gdb-tui/"/>
+      <url>/2024/05/01/linux-gdb-tui/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-GDB-tui常用命令"><a href="#1-GDB-tui常用命令" class="headerlink" title="1. GDB tui常用命令"></a>1. GDB tui常用命令</h1><h2 id="1-1-启动和退出tui模式"><a href="#1-1-启动和退出tui模式" class="headerlink" title="1.1 启动和退出tui模式"></a>1.1 启动和退出tui模式</h2><ul><li><p>分别是<code>tui enable</code>(缩写为<code>tui e</code>)和<code>tui disable</code>(缩写为<code>tui d</code>)命令</p></li><li><p>或者使用快捷键ctrl+x+a，按第一次进入，第二次退出</p></li></ul><h2 id="1-2-ctrl-L-刷新屏幕"><a href="#1-2-ctrl-L-刷新屏幕" class="headerlink" title="1.2 ctrl+L 刷新屏幕"></a>1.2 ctrl+L 刷新屏幕</h2><p>在程序使用标准输出和标准错误打印时屏幕可能乱掉，可以使用ctrl+L进行刷新</p><p>ctrl+L不会被记在命令历史里，下一次ENTER不会重复ctrl+L</p><h2 id="1-3-info-win命令"><a href="#1-3-info-win命令" class="headerlink" title="1.3 info win命令"></a>1.3 <code>info win</code>命令</h2><p>列出当前显示的所有窗口</p><h2 id="1-4-focus命令"><a href="#1-4-focus命令" class="headerlink" title="1.4 focus命令"></a>1.4 <code>focus</code>命令</h2><p>缩写为<code>fs</code>，改变焦点到不同窗口，使用方式<code>focus [WINDOW-NAME | next | prev]</code></p><h2 id="1-5-查看文档"><a href="#1-5-查看文档" class="headerlink" title="1.5 查看文档"></a>1.5 查看文档</h2><p>使用<code>help text-user-interface</code>查看tui相关所有命令</p><h1 id="2-CGDB"><a href="#2-CGDB" class="headerlink" title="2. CGDB"></a>2. CGDB</h1><p>CGDB是GDB的一个控制台前端(Console Frontend)，它还是使用GDB进行实际调试</p><p>GDB的tui模式不支持源码窗口和命令窗口垂直分屏，因此使用CGDB</p><h2 id="2-1-使用"><a href="#2-1-使用" class="headerlink" title="2.1 使用"></a>2.1 使用</h2><h4 id="1-启动"><a href="#1-启动" class="headerlink" title="1. 启动"></a>1. 启动</h4><p>在shell中输入<code>cgdb</code>启动程序</p><p>调用方式类似GDB: </p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cgdb [cgdb options] [--] [gdb options]</span><br></pre></td></tr></table></figure><h4 id="2-退出"><a href="#2-退出" class="headerlink" title="2. 退出"></a>2. 退出</h4><ul><li><p>在GDB窗口输入<code>quit</code>或者ctrl+D</p></li><li><p>在源代码窗口输入<code>:quit</code></p></li></ul><h4 id="3-调试"><a href="#3-调试" class="headerlink" title="3. 调试"></a>3. 调试</h4><p>CGDB的操作类似vim，按<code>ESC</code>键进入源代码窗口，按<code>i</code>进入GDB窗口</p><h4 id="4-垂直分屏"><a href="#4-垂直分屏" class="headerlink" title="4. 垂直分屏"></a>4. 垂直分屏</h4><p>源代码和命令窗口垂直分屏输入：</p><p><code>:set winsplitorientation=vertical</code>或者<code>:set wso=vertical</code></p><h4 id="5-cgdb-cgdbrc文件"><a href="#5-cgdb-cgdbrc文件" class="headerlink" title="5. ~/.cgdb/cgdbrc文件"></a>5. <code>~/.cgdb/cgdbrc</code>文件</h4><p>类似于<code>!/.bashrc</code>文件，用于初始化cgdb，可将<code>:set wso=vertical</code>写入以默认垂直分屏</p><h2 id="2-2-资源"><a href="#2-2-资源" class="headerlink" title="2.2 资源"></a>2.2 资源</h2><ul><li><p><a href="https://cgdb.github.io/">官网</a></p></li><li><p><a href="https://cgdb.github.io/docs/cgdb-split.html">文档</a></p></li></ul><h2 id="2-3-注意"><a href="#2-3-注意" class="headerlink" title="2.3 注意"></a>2.3 注意</h2><ul><li>目前最新版为0.8.0，没有发正式版</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+          <category> gdb </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> gdb </tag>
+            
+            <tag> shell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Linux GDB Watchpoint</title>
+      <link href="/2024/05/01/linux-gdb-watchpoint/"/>
+      <url>/2024/05/01/linux-gdb-watchpoint/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-基本概念"><a href="#1-基本概念" class="headerlink" title="1. 基本概念"></a>1. 基本概念</h1><p>watchpoint又称data breakpoint，用于监控某个表达式，当它的值改变时stop程序。</p><p>表达式可以是单个变量，也可以包含操作符(任意原语言中有效的操作符)。</p><h1 id="2-分类"><a href="#2-分类" class="headerlink" title="2. 分类"></a>2. 分类</h1><h1 id="2-1-software-watchpoint"><a href="#2-1-software-watchpoint" class="headerlink" title="2.1 software watchpoint"></a>2.1 software watchpoint</h1><p>GDB单步执行程序，然后每次都计算表达式值。因此程序执行速度可能慢了数百倍，而且它在被监控值改变后的下一条语句处才报告值改变，而非在确切的CPU指令处。</p><h1 id="2-2-hardware-watchpoint"><a href="#2-2-hardware-watchpoint" class="headerlink" title="2.2 hardware watchpoint"></a>2.2 hardware watchpoint</h1><p>依赖硬件支持(如x86架构)，不会减慢程序执行速度，且在改变被监控值的CPU指令执行时即能及时报告。</p><p>GDB会尽可能创建hardware watchpoint。</p><p>有时GDB不能创建hardware watchpoint，可能的原因包括：</p><ol><li><p>要监控的内存区域过大。(此时GDB可能把它拆分成多个小的hardware watchpoint)。</p></li><li><p>已经设置了太多hardware watchpoint。但可能到程序resume执行时(而不是创建watchpoint时)GDB才会报告”Hardware watchpoint <num>: Could not insert watchpoint”，此时需要delete或者disable一些hardware watchpoint。</p></li></ol><h1 id="3-创建watchpoint"><a href="#3-创建watchpoint" class="headerlink" title="3. 创建watchpoint"></a>3. 创建watchpoint</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">watch [-l|-location] expr [thread thread-id]</span><br></pre></td></tr></table></figure><p>为表达式<code>expr</code>创建监控，当它的值改变时stop程序。</p><p><code>-location</code>表明：<code>expr</code>计算的结果需要是一个左值，GDB会取它的地址并监控这个地址上的内容变化，它的类型决定了监控的内存大小。(如果<code>expr</code>本身是一个左值，有无<code>-location</code>都一样；如果<code>expr</code>是右值，带<code>-location</code>会报错，因为它不能取地址)</p><p><code>thread thread-id</code>表明：只有特定的线程<code>thread-id</code>改变<code>expr</code>的值，程序才会stop。这种限制线程的watchpoint只适用于hardware watchpoint。</p><h1 id="4-查看watchpoint"><a href="#4-查看watchpoint" class="headerlink" title="4. 查看watchpoint"></a>4. 查看watchpoint</h1><ul><li><p><code>info breakpoints</code>或者缩写为<code>i b</code>，展示所有断点，包括watchpoint</p></li><li><p><code>info watchpoints</code>，展示所有watchpoint</p></li></ul><h1 id="5-删除watchpoint"><a href="#5-删除watchpoint" class="headerlink" title="5. 删除watchpoint"></a>5. 删除watchpoint</h1><h2 id="5-1-主动删除"><a href="#5-1-主动删除" class="headerlink" title="5.1 主动删除"></a>5.1 主动删除</h2><ul><li><code>delete [BREAK_NUM]</code>或者缩写为<code>d [BREAK_NUM]</code></li></ul><h2 id="5-2-自动删除"><a href="#5-2-自动删除" class="headerlink" title="5.2 自动删除"></a>5.2 自动删除</h2><p>当本地变量<code>local_var</code>离开作用域时，含有<code>local_var</code>的<code>expr</code>的watchpoint都会被自动删除。</p><h1 id="6-多线程程序中的watchpoint"><a href="#6-多线程程序中的watchpoint" class="headerlink" title="6. 多线程程序中的watchpoint"></a>6. 多线程程序中的watchpoint</h1><p>按理说，GDB应该发现来自每个线程的对<code>expr</code>(被监控表达式)的改变。</p><p>对hardware watchpoint来说，GDB确实可以发现来自所有线程的修改。</p><p>对software watchpoint来说，GDB只能监控单线程中的<code>expr</code>。如果你自信<code>expr</code>只能被当前线程修改且不会发生线程切换，然后可以照常使用software watchpoint。然而，GDB可能不会注意到对<code>expr</code>的来自非当前线程的修改。</p><p>即：在多线程程序中，software watchpoint的作用有限。</p><h1 id="7-监控复杂类对象"><a href="#7-监控复杂类对象" class="headerlink" title="7. 监控复杂类对象"></a>7. 监控复杂类对象</h1><p>应该还是要先知道它的数据成员，拆成基本数据类型来监控。例如监控<code>std::string</code>类型的字符串变量<code>s</code>的内容变化，需要先拿到<code>s</code>的<code>char*</code>指针成员再监控该指针指向的内存，直接<code>watch s</code>(也可以但)不准确。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+          <category> gdb </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> gdb </tag>
+            
+            <tag> shell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Linux合并静态库</title>
+      <link href="/2024/04/30/linux-merge-static-lib/"/>
+      <url>/2024/04/30/linux-merge-static-lib/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-使用ar-M-merge-script-命令"><a href="#1-使用ar-M-merge-script-命令" class="headerlink" title="1. 使用ar -M [ &lt; merge.script ]命令"></a>1. 使用<code>ar -M [ &lt; merge.script ]</code>命令</h1><p>写一个脚本<code>merge.script</code>，将脚本重定向给<code>ar -M</code>命令的stdin。</p><p>使用<code>create</code>传入输出的静态库文件名，<code>addlib</code>传入输入的静态库，<code>addmod</code>传入输入的目标文件，最后调用<code>save</code>和<code>end</code>。</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">create libmerged.a</span><br><span class="line">addlib libfirst.a</span><br><span class="line">addlib libsecond.a</span><br><span class="line">...</span><br><span class="line">addmod object_first.o</span><br><span class="line">addmod object_second.o</span><br><span class="line">...</span><br><span class="line">save</span><br><span class="line">end</span><br></pre></td></tr></table></figure><h1 id="2-注意排列顺序"><a href="#2-注意排列顺序" class="headerlink" title="2. 注意排列顺序"></a>2. 注意排列顺序</h1><p>把必须包括其所有符号的输入库放在前面，因为在后面库中包含重复符号名的时候<strong>可能</strong>直接丢弃以前面为准。</p><h1 id="3-参考"><a href="#3-参考" class="headerlink" title="3. 参考"></a>3. 参考</h1><ul><li><p><a href="https://stackoverflow.com/a/23621751/18781047">stackoverflow</a></p></li><li><p><a href="https://sourceware.org/binutils/docs/binutils/ar-scripts.html">文档</a></p></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> shell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Linux sed命令使用方法</title>
+      <link href="/2024/04/28/linux-sed-command/"/>
+      <url>/2024/04/28/linux-sed-command/</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> shell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Linux vim常用命令</title>
+      <link href="/2024/04/28/linux-vim-command/"/>
+      <url>/2024/04/28/linux-vim-command/</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> shell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>十一月四日风雨大作二首</title>
+      <link href="/2024/04/23/%E5%8D%81%E4%B8%80%E6%9C%88%E5%9B%9B%E6%97%A5%E9%A3%8E%E9%9B%A8%E5%A4%A7%E4%BD%9C%E4%BA%8C%E9%A6%96/"/>
+      <url>/2024/04/23/%E5%8D%81%E4%B8%80%E6%9C%88%E5%9B%9B%E6%97%A5%E9%A3%8E%E9%9B%A8%E5%A4%A7%E4%BD%9C%E4%BA%8C%E9%A6%96/</url>
+      
+        <content type="html"><![CDATA[<h1><p style="text-align: center;">十一月四日风雨大作二首</p></h1><h3><p style="text-align: center;">[宋] 陆游</p></h3><h1><p style="text-align: center;">（其一）</p></h1><h2><p style="text-align: center;">风卷江湖雨暗村，四山声作海涛翻。</p></h2><h2><p style="text-align: center;">溪柴火软蛮毡暖，我与狸奴不出门。</p></h2><h1><p style="text-align: center;">（其二）</p></h1><h2><p style="text-align: center;">僵卧孤村不自哀，尚思为国戍轮台。</p></h2><h2><p style="text-align: center;">夜阑卧听风吹雨，铁马冰河入梦来。</p></h2>]]></content>
+      
+      
+      <categories>
+          
+          <category> literature(文学) </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> poem(诗歌) </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>唐太宗封禅与魏征答问</title>
+      <link href="/2024/04/23/%E5%94%90%E5%A4%AA%E5%AE%97%E5%B0%81%E7%A6%85%E4%B8%8E%E9%AD%8F%E5%BE%81%E7%AD%94%E9%97%AE/"/>
+      <url>/2024/04/23/%E5%94%90%E5%A4%AA%E5%AE%97%E5%B0%81%E7%A6%85%E4%B8%8E%E9%AD%8F%E5%BE%81%E7%AD%94%E9%97%AE/</url>
+      
+        <content type="html"><![CDATA[<h1>出自《资治通鉴·唐纪·唐纪十》</h1><p>上曰：“公不欲朕封禅者，以功未高邪？”<br>曰：“高矣。”<br>“德未厚邪？”<br>曰：“厚矣。”<br>“中国未安邪？”<br>曰：“安矣。”<br>“四夷未服邪？”<br>曰：“服矣。”<br>“年谷未丰邪？”<br>曰：“丰矣。”<br>“符瑞未至邪？”<br>曰：“至矣。”<br>“然则何为不可封禅？”<br>对曰：“陛下虽有此六者，然承隋末大乱之后，户口未复，仓廪尚虚，而车驾东巡，千乘万骑，其供顿劳费，未易任也。且陛下封禅，则万国咸集，远夷君长，皆当扈从；今自伊、洛以东至于海、岱，烟火尚希，灌莽极目，此乃引戎狄入腹中，示之以虚弱也。况赏赉不赀，未厌远人之望；给复连年，不偿百姓之劳；<b>崇虚名而受实害</b>，陛下将焉用之！”</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> literature(文学) </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> history(历史) </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>过邺下吊高神武</title>
+      <link href="/2024/04/23/%E8%BF%87%E9%82%BA%E4%B8%8B%E5%90%8A%E9%AB%98%E7%A5%9E%E6%AD%A6/"/>
+      <url>/2024/04/23/%E8%BF%87%E9%82%BA%E4%B8%8B%E5%90%8A%E9%AB%98%E7%A5%9E%E6%AD%A6/</url>
+      
+        <content type="html"><![CDATA[<h1><p style="text-align: center;">过邺下吊高神武</p></h1><h3><p style="text-align: center;">[清] 袁枚</p></h3><h2><p style="text-align: center;">唱罢阴山敕勒歌，英雄涕泪老来多。</p></h2><h2><p style="text-align: center;">生持魏武朝天笏，死授条侯杀贼戈。</p></h2><h2><p style="text-align: center;">六镇华夷传露布，九龙风雨聚漳河。</p></h2><h2><p style="text-align: center;">祇今尚有清流月，曾照高王万马过。</p></h2>]]></content>
+      
+      
+      <categories>
+          
+          <category> literature(文学) </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> poem(诗歌) </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Linux查看二进制文件内容</title>
+      <link href="/2024/04/15/linux-check-binary-file/"/>
+      <url>/2024/04/15/linux-check-binary-file/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-命令"><a href="#1-命令" class="headerlink" title="1. 命令"></a>1. 命令</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexdump -C &lt;file&gt;</span><br></pre></td></tr></table></figure><p>或者</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hd &lt;file&gt;</span><br></pre></td></tr></table></figure><p><code>hd</code>是<code>hexdump</code>的符号链接</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> shell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Linux GDB 常用命令</title>
+      <link href="/2024/03/15/linux-gdb-command/"/>
+      <url>/2024/03/15/linux-gdb-command/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-编译"><a href="#1-编译" class="headerlink" title="1. 编译"></a>1. 编译</h1><p>注意： </p><ol><li><p><strong>不要使用优化</strong>(即使用-O0选项)</p></li><li><p><strong>带上调试信息</strong>(即使用-g选项)</p></li></ol><p>-g的调试信息级别是2，使用-g3会带上额外调试信息(如关于宏的)</p><p>总而言之，最好使用<code>-g3 -O0</code></p><h1 id="2-help-system"><a href="#2-help-system" class="headerlink" title="2. help system"></a>2. help system</h1><h2 id="2-1-help命令"><a href="#2-1-help命令" class="headerlink" title="2.1 help命令"></a>2.1 <code>help</code>命令</h2><p><code>help</code>缩写为<code>h</code></p><p><code>help &lt;command&gt;</code> 输出某个命令的全部文档</p><h2 id="2-2-apropos命令"><a href="#2-2-apropos命令" class="headerlink" title="2.2 apropos命令"></a>2.2 <code>apropos</code>命令</h2><p><code>apropos [-v] &lt;regexp&gt;</code>遍历所有命令、别名和文档查找<code>&lt;regexp&gt;</code>的匹配</p><h2 id="2-3-其他"><a href="#2-3-其他" class="headerlink" title="2.3 其他"></a>2.3 其他</h2><p><code>complete &lt;args&gt;</code>输出<code>&lt;args&gt;</code>所有可能的命令补全结果</p><p><code>info</code>命令用于获取正在调试的程序的状态信息</p><p><code>show</code>命令用于获取GDB本身的状态信息</p><h1 id="3-启动GDB"><a href="#3-启动GDB" class="headerlink" title="3. 启动GDB"></a>3. 启动GDB</h1><h2 id="3-1-正常启动"><a href="#3-1-正常启动" class="headerlink" title="3.1 正常启动"></a>3.1 正常启动</h2><p>直接指定二进制文件，例如<code>gdb myprogram</code></p><p>或者先不带参数启动GDB再用<code>file</code>命令加载，例如</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ gdb</span><br><span class="line">(gdb) file myprogram</span><br><span class="line">Reading symbols from myprogram...</span><br><span class="line">(gdb) </span><br></pre></td></tr></table></figure><p>inferior在GDB里基本等同于进程，它可以包含多个线程</p><h2 id="3-2-q或者-quiet"><a href="#3-2-q或者-quiet" class="headerlink" title="3.2 -q或者--quiet"></a>3.2 <code>-q</code>或者<code>--quiet</code></h2><p>启动时不打印GDB版本信息</p><h2 id="3-3-指定被调试程序的命令行参数"><a href="#3-3-指定被调试程序的命令行参数" class="headerlink" title="3.3 指定被调试程序的命令行参数"></a>3.3 指定被调试程序的命令行参数</h2><p>启动后查看程序命令行参数用<code>show args</code>，查看当前函数的参数用<code>info args</code></p><h3 id="3-3-1-args选项"><a href="#3-3-1-args选项" class="headerlink" title="3.3.1 --args选项"></a>3.3.1 <code>--args</code>选项</h3><p>例如<code>gdb --args myprogram 1 2 3</code></p><h3 id="3-3-2-run命令或者start命令"><a href="#3-3-2-run命令或者start命令" class="headerlink" title="3.3.2 run命令或者start命令"></a>3.3.2 run命令或者start命令</h3><p>例如<code>run 1 2 3</code>或者<code>start 1 2 3</code></p><h3 id="3-3-3-set-args命令"><a href="#3-3-3-set-args命令" class="headerlink" title="3.3.3 set args命令"></a>3.3.3 <code>set args</code>命令</h3><p>例如<code>set args 1 2 3</code></p><h2 id="3-4-调试coredump文件"><a href="#3-4-调试coredump文件" class="headerlink" title="3.4 调试coredump文件"></a>3.4 调试coredump文件</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gdb &lt;executable_file_path&gt; &lt;coredump_file_path&gt;</span><br></pre></td></tr></table></figure><h1 id="4-GDB常用命令"><a href="#4-GDB常用命令" class="headerlink" title="4. GDB常用命令"></a>4. GDB常用命令</h1><h4 id="1-run和start"><a href="#1-run和start" class="headerlink" title="1. run和start"></a>1. <code>run</code>和<code>start</code></h4><p>运行程序，其中<code>run</code>的缩写为<code>r</code>，<code>start</code>会在main函数开始处暂停</p><h4 id="2-break-LOCATION-thread-THREAD-NUM-if-CONDITION"><a href="#2-break-LOCATION-thread-THREAD-NUM-if-CONDITION" class="headerlink" title="2. break [LOCATION] [thread THREAD_NUM] [if CONDITION]"></a>2. <code>break [LOCATION] [thread THREAD_NUM] [if CONDITION]</code></h4><p>缩写为<code>b</code>，设置断点，可以使用文件名和行号，也可以使用函数名</p><ul><li><p>不指定<code>[LOCATION]</code>的话断点打到正要执行的那一行</p></li><li><p><code>[thread THREAD_NUM]</code>用于限制只有特定线程hit这个断点时程序才会暂停</p></li><li><p><code>if</code>子句用来指定条件断点，只有在<code>CONDITION</code>为真时断点才会触发</p></li><li><p><code>tbreak</code>命令类似于<code>break</code>，只是用来设置临时断点，在第一次hit之后GDB就会自动删除它</p></li></ul><h4 id="3-continue"><a href="#3-continue" class="headerlink" title="3. continue"></a>3. <code>continue</code></h4><p>在断点处继续执行，直到下一个断点</p><h4 id="4-next"><a href="#4-next" class="headerlink" title="4. next"></a>4. <code>next</code></h4><p>缩写为<code>n</code>，step over，(可跟一个数字参数<code>[N]</code>指定重复<code>next</code>的次数，但遇到断点还是会提前stop)</p><h4 id="5-step"><a href="#5-step" class="headerlink" title="5. step"></a>5. <code>step</code></h4><p>缩写为<code>s</code>，step into，(可跟一个数字参数<code>[N]</code>指定重复<code>step</code>的次数，但遇到断点还是会提前stop)</p><h4 id="6-print"><a href="#6-print" class="headerlink" title="6. print"></a>6. <code>print</code></h4><p>缩写为<code>p</code>，打印表达式的值</p><h4 id="7-watch-EXP"><a href="#7-watch-EXP" class="headerlink" title="7. watch EXP"></a>7. <code>watch EXP</code></h4><p>监控表达式<code>EXP</code>，当它的值改变时暂停程序</p><h4 id="8-backtrace或者where"><a href="#8-backtrace或者where" class="headerlink" title="8. backtrace或者where"></a>8. <code>backtrace</code>或者<code>where</code></h4><p>缩写为<code>bt</code>，打印调用栈帧层次</p><h4 id="9-frame"><a href="#9-frame" class="headerlink" title="9. frame"></a>9. <code>frame</code></h4><p>缩写为<code>f</code>，选择并打印栈帧</p><ul><li>不带参数时，打印当前被选择的栈帧，打印结果为(1)第一行为层次相关，(2)第二行为<strong>此栈帧内</strong>正要执行的代码</li><li>指定数字参数，选择到该层栈帧并打印</li><li><code>frame function &lt;function_name&gt;</code>或者缩写为<code>f f &lt;function_name&gt;</code>，通过函数名选择栈帧并打印</li></ul><h4 id="10-finish"><a href="#10-finish" class="headerlink" title="10. finish"></a>10. <code>finish</code></h4><p>缩写为<code>fin</code>，运行到当前函数返回，step out</p><h4 id="11-delete-BREAKPOINT-NUM"><a href="#11-delete-BREAKPOINT-NUM" class="headerlink" title="11. delete [BREAKPOINT_NUM]"></a>11. <code>delete [BREAKPOINT_NUM]</code></h4><ul><li><p>缩写为<code>d</code>，通过断点号<code>BREAKPOINT_NUM</code>删除断点</p></li><li><p>也可以跟其他子命令用以删除其他GDB对象</p></li></ul><h4 id="12-info"><a href="#12-info" class="headerlink" title="12. info"></a>12. <code>info</code></h4><p>缩写为<code>i</code>，用于获取正在调试的程序的状态信息，例如：</p><ul><li><p><code>info breakpoints</code>或者缩写为<code>i b</code>， 查看断点</p></li><li><p><code>info threads</code>或者缩写为<code>i th</code>，查看线程信息</p></li><li><p><code>info shared</code>，查看加载的动态链接库</p></li><li><p><code>info display</code>，查看自动展示表达式</p></li></ul><h4 id="13-shell"><a href="#13-shell" class="headerlink" title="13. shell"></a>13. <code>shell</code></h4><p>将这一行的剩余部分当做shell命令执行，无其余部分时会启动一个shell</p><h4 id="14-清屏"><a href="#14-清屏" class="headerlink" title="14. 清屏"></a>14. 清屏</h4><p>ctrl+L或者<code>shell clear</code></p><h4 id="15-list"><a href="#15-list" class="headerlink" title="15. list"></a>15. <code>list</code></h4><p>缩写为<code>l</code>，列出源代码</p><ul><li><p>无参数时，列出上一次调用后挨着的10行</p></li><li><p><code>list -</code>，列出上一次调用前挨着的10行</p></li><li><p>指定单参数时，列出该行前后共10行</p></li><li><p>指定逗号分隔的双参数时，它们指定了列出的代码范围，如果一个参数是空，以另一个参数为准向前或向后列出10行</p></li><li><p>行号也可以用函数名指定，如<code>l f,</code>列出函数f的前10行，接着调<code>l</code>可以不断向后列出函数f的其他代码</p></li><li><p>可以使用<code>show listsize</code>或者<code>set listsize &lt;size&gt;</code>查看或修改listsize，默认为10行</p></li></ul><h4 id="16-thread"><a href="#16-thread" class="headerlink" title="16. thread &lt;THREAD_NUM&gt;"></a>16. <code>thread &lt;THREAD_NUM&gt;</code></h4><p>缩写为<code>t</code>，切换到线程<code>&lt;THREAD_NUM&gt;</code></p><h4 id="17-until-LINE-SPEC"><a href="#17-until-LINE-SPEC" class="headerlink" title="17. until LINE_SPEC"></a>17. <code>until LINE_SPEC</code></h4><p>缩写为<code>u</code>，(在当前栈帧)执行下去直到<code>LINE_SPEC</code>指定的行，停下来时<code>LINE_SPEC</code>是下一行要执行的</p><ul><li><p>可以用来将循环执行完毕</p></li><li><p>如果<code>LINE_SPEC</code>超出当前函数，只会执行到当前函数返回为止</p></li></ul><h4 id="18-call"><a href="#18-call" class="headerlink" title="18. call"></a>18. <code>call</code></h4><p>调用函数并打印返回值，例如<code>call f(1,2,3)</code></p><h4 id="19-return"><a href="#19-return" class="headerlink" title="19. return [&lt;return_value&gt;]"></a>19. <code>return [&lt;return_value&gt;]</code></h4><p>使当前函数(栈帧)直接返回，如果指定了<code>&lt;return_value&gt;</code>，将它作为函数返回值</p><h4 id="20-display-EXP"><a href="#20-display-EXP" class="headerlink" title="20. display [EXP]"></a>20. <code>display [EXP]</code></h4><ul><li><p>在每次程序暂停时自动打印表达式<code>EXP</code>的值</p></li><li><p>不带参数时，列出当前所有的自动打印表达式</p></li></ul><h4 id="21-undisplay-NUM"><a href="#21-undisplay-NUM" class="headerlink" title="21. undisplay [NUM]"></a>21. <code>undisplay [NUM]</code></h4><ul><li><p>删除<code>NUM</code>标识的自动打印表达式</p></li><li><p>不带参数时，删除所有自动打印表达式</p></li></ul><h4 id="22-disable-BREAKPOINT-NUM"><a href="#22-disable-BREAKPOINT-NUM" class="headerlink" title="22. disable [BREAKPOINT_NUM]"></a>22. <code>disable [BREAKPOINT_NUM]</code></h4><p>缩写为<code>dis</code>，用于disable某个断点</p><ul><li>不带参数时，disable所有断点</li><li>也可以使用子命令来disable其他GDB对象，如<code>disable display [DISPLAY_NUM]</code></li></ul><h4 id="23-enable-BREAKPOINT-NUM"><a href="#23-enable-BREAKPOINT-NUM" class="headerlink" title="23. enable [BREAKPOINT_NUM]"></a>23. <code>enable [BREAKPOINT_NUM]</code></h4><p>缩写为<code>en</code>，和<code>disable</code>命令作用完全相反</p><h4 id="24-clear-LINE-SPEC"><a href="#24-clear-LINE-SPEC" class="headerlink" title="24. clear [LINE_SPEC]"></a>24. <code>clear [LINE_SPEC]</code></h4><p>缩写为<code>cl</code>，用于删除某一行上的断点</p><ul><li>不带参数时，删除当前栈帧的当前行上的断点</li><li><code>LINE_SPEC</code>可以是函数名，删除函数声明行上的断点</li></ul><h4 id="25-set"><a href="#25-set" class="headerlink" title="25. set"></a>25. <code>set</code></h4><ul><li><code>set VAR = EXP</code>，计算表达式<code>EXP</code>并赋值给变量<code>VAR</code></li><li>当<code>VAR</code>变量名和<code>set</code>的子命令名冲突时，可以使用<code>set var VAR = EXP</code>子命令来对变量赋值</li></ul><h4 id="26-up-NUM"><a href="#26-up-NUM" class="headerlink" title="26. up [NUM]"></a>26. <code>up [NUM]</code></h4><ul><li>选择上层栈帧(调用当前函数的函数)</li><li><code>NUM</code>指定向上走几层，默认为1</li></ul><h4 id="27-down-NUM"><a href="#27-down-NUM" class="headerlink" title="27. down [NUM]"></a>27. <code>down [NUM]</code></h4><p>缩写为<code>do</code></p><ul><li>选择下层栈帧(当前函数调用的函数)</li><li><code>NUM</code>指定向下走几层，默认为1</li></ul><h4 id="28-set-history-save-on"><a href="#28-set-history-save-on" class="headerlink" title="28. set history save on"></a>28. <code>set history save on</code></h4><p>在退出时保存命令历史，可以写入<code>~/.gdbinit</code>文件以默认启用命令历史保存</p><h4 id="29-pipe"><a href="#29-pipe" class="headerlink" title="29. pipe"></a>29. <code>pipe</code></h4><p>缩写为<code>|</code>，将gdb命令的输出重定向到一个shell命令，使用方式：</p><p><code>| [COMMAND] | SHELL_COMMAND</code>或者<code>pipe [COMMAND] | SHELL_COMMAND</code></p><h4 id="30-commands-BREAK-NUM"><a href="#30-commands-BREAK-NUM" class="headerlink" title="30. commands [BREAK_NUM]"></a>30. <code>commands [BREAK_NUM]</code></h4><p>设定在指定断点hit时需要执行的命令</p><ul><li><p>无<code>BREAK_NUM</code>参数时，默认使用最后设置的断点(即<code>$bpnum</code>)</p></li><li><p>如需清空上次<code>commands</code>的设置，只需再次调用<code>commands</code>并传入空的命令</p></li><li><p>命令第一行输入<code>silent</code>可以使该断点hit时不打印输出</p></li></ul><h4 id="31-ignore"><a href="#31-ignore" class="headerlink" title="31. ignore &lt;BREAK_NUM&gt; &lt;COUNT&gt;"></a>31. <code>ignore &lt;BREAK_NUM&gt; &lt;COUNT&gt;</code></h4><p>忽略断点<code>BREAK_NUM</code>接下来的<code>COUNT</code>次hit</p><h1 id="5-其他"><a href="#5-其他" class="headerlink" title="5. 其他"></a>5. 其他</h1><h2 id="5-1-获取目标文件的编译flags"><a href="#5-1-获取目标文件的编译flags" class="headerlink" title="5.1 获取目标文件的编译flags"></a>5.1 获取目标文件的编译flags</h2><p>为查看某个目标文件编译时是否启用了优化或者携带调试信息(debuginfo)</p><p>使用命令<code>readelf -w &lt;object_file&gt; | grep producer | head -1</code>查看使用的编译器和编译flags</p><p>检查flags里是否有<code>-O</code>或者<code>-g</code>即可</p><h2 id="5-2-查看复杂程序的编译flags"><a href="#5-2-查看复杂程序的编译flags" class="headerlink" title="5.2 查看复杂程序的编译flags"></a>5.2 查看复杂程序的编译flags</h2><p>对于包含多个翻译单元的复杂程序，需要先从readelf的输出中找到指定的翻译单元，再去查看它的producer属性</p><h1 id="6-调试器的不足"><a href="#6-调试器的不足" class="headerlink" title="6. 调试器的不足"></a>6. 调试器的不足</h1><p>调试器毕竟是对原程序的一种入侵，可能有不可避免的副作用(例如：如果一个线程因为断点而stop，另一个线程因为syscall而阻塞，那么这个syscall可能还没有真实执行完就会早熟地返回)，再加上GDB本身的使用也很复杂，所以总会有想不到的情况，遇到没见过的不熟悉的问题不要心慌，<strong>要想其他办法绕过去</strong>。再者说，技术细节其实并不重要也没人关心，重要的是<strong>完成实际任务</strong>和<strong>与人打交道</strong>。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+          <category> gdb </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> gdb </tag>
+            
+            <tag> shell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Linux ld命令使用方法</title>
+      <link href="/2024/03/03/linux-ld-command/"/>
+      <url>/2024/03/03/linux-ld-command/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-ld命令-linux链接器"><a href="#1-ld命令-linux链接器" class="headerlink" title="1. ld命令: linux链接器"></a>1. ld命令: linux链接器</h1><p>作用: 将一系列目标文件(.o)和静态库文件(.a)链接起来(动态库文件.so也可能作为ld的输入文件)</p><h1 id="2-常用选项"><a href="#2-常用选项" class="headerlink" title="2. 常用选项"></a>2. 常用选项</h1><p>注意：对于单字母的选项(如<code>-l</code>等)，选项的参数直接跟在选项之后，用不用空格分隔都可以。</p><h2 id="2-1-l-或者-library"><a href="#2-1-l-或者-library" class="headerlink" title="2.1 -l &lt;namespec&gt;或者--library=&lt;namespec&gt;"></a>2.1 <code>-l &lt;namespec&gt;</code>或者<code>--library=&lt;namespec&gt;</code></h2><p>使用<code>&lt;namespec&gt;</code>标识的库文件(动态库lib<namespec>.so优先于静态库lib<namespec>.a)。</p><p>如果<code>&lt;namespec&gt;</code>是<code>:filename</code>的形式，查找文件名为<code>filename</code>的库文件。</p><h2 id="2-2-L-或者-library-path"><a href="#2-2-L-或者-library-path" class="headerlink" title="2.2 -L &lt;searchdir&gt;或者--library-path=&lt;searchdir&gt;"></a>2.2 <code>-L &lt;searchdir&gt;</code>或者<code>--library-path=&lt;searchdir&gt;</code></h2><p>添加一个查找库文件(和控制脚本)的目录<code>&lt;searchdir&gt;</code>以供<code>-l</code>选项使用，多个此选项之间的顺序关系为在命令行出现的顺序，最后为默认查找目录。</p><p>默认查找目录是系统依赖的，较为复杂，如&#x2F;lib&#x2F;x86_64-linux-gnu。</p><h2 id="2-3-rpath"><a href="#2-3-rpath" class="headerlink" title="2.3 -rpath=&lt;dir&gt;"></a>2.3 <code>-rpath=&lt;dir&gt;</code></h2><p>添加<code>&lt;dir&gt;</code>到此次生成的动态库或可执行文件的运行时动态库查找路径，以供动态链接器使用。</p><h2 id="2-4-shared"><a href="#2-4-shared" class="headerlink" title="2.4 -shared"></a>2.4 <code>-shared</code></h2><p>表明此次链接要创建一个共享库。</p><h2 id="2-5-static"><a href="#2-5-static" class="headerlink" title="2.5 -static"></a>2.5 <code>-static</code></h2><p>与<code>-shared</code>不同，<code>-static</code>表示其之后的<code>-l</code>选项<strong>只选择静态库</strong>去参与链接。</p><h2 id="2-6-start-group-end-group"><a href="#2-6-start-group-end-group" class="headerlink" title="2.6 -( &lt;archives&gt; -) --start-group &lt;archives&gt; --end-group"></a>2.6 <code>-( &lt;archives&gt; -)</code> <code>--start-group &lt;archives&gt; --end-group</code></h2><p><code>&lt;archives&gt;</code>指定的库文件会被重复查找以解析未定义符号，而非按命令行出现顺序只查找一次，此选项可能会带来较大性能开销。</p><h2 id="2-7-whole-archive和-no-whole-archive"><a href="#2-7-whole-archive和-no-whole-archive" class="headerlink" title="2.7 --whole-archive和--no-whole-archive"></a>2.7 <code>--whole-archive</code>和<code>--no-whole-archive</code></h2><p><code>--whole-archive</code>之后的.a静态库中的所有目标文件都会被链接进来，而不是像普通情况下只链接其中用到的目标文件。</p><p>这个选项常被用来将静态库转为动态库。</p><p>使用<code>--whole-archive</code>后不要忘记使用<code>--no-whole-archive</code>取消后续作用。</p><h2 id="2-8-version-script"><a href="#2-8-version-script" class="headerlink" title="2.8 --version-script=&lt;version-scriptfile&gt;"></a>2.8 <code>--version-script=&lt;version-scriptfile&gt;</code></h2><p>指定version script，常常在创建共享库时使用。可以用来做共享库的符号隐藏，脚本文件内容示例如下:</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  global:</span><br><span class="line">    extern &quot;C++&quot; &#123;</span><br><span class="line">        my_namespace::*;</span><br><span class="line">        my_prefix_*;</span><br><span class="line">    &#125;;</span><br><span class="line">  local: *;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure><p>上述文件中标记为global的符号会被导出，其他标记为local的符号不可见。</p><p>关于共享库的符号导出，GNU有<a href="https://www.gnu.org/software/gnulib/manual/html_node/Exported-Symbols-of-Shared-Libraries.html" title="Controlling the Exported Symbols of Shared Libraries">文章</a>介绍。</p><h1 id="3-注意事项"><a href="#3-注意事项" class="headerlink" title="3. 注意事项"></a>3. 注意事项</h1><ol><li><p>被链接为动态库的目标文件需要在编译时指定<code>-fPIC</code>选项，在x86平台上<code>-fPIC</code>(大写字母)和<code>-fpic</code>(小写字母)没有区别</p></li><li><p>静态库.a只是一些目标文件.o的集合外加一些索引信息; 从ld的视角，静态库像一个“半成品”，动态库是“最终产品(final product)”，因为不能merge两个动态库成一个动态库，但静态库可以任意merge为新的静态库或者动态库</p></li><li><p>当使用编译器驱动器去调用ld时，传递给ld的命令行选项应该使用前缀<code>-Wl,</code></p></li><li><p>使用编译器驱动器(compiler driver, 如gcc或者g++)去调用ld，尽量不要直接调用，否则可能有未指定到的选项</p></li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> shell </tag>
+            
+            <tag> linker </tag>
+            
+            <tag> linking </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Linux ldd命令使用方法</title>
+      <link href="/2024/03/03/linux-ldd-command/"/>
+      <url>/2024/03/03/linux-ldd-command/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-作用"><a href="#1-作用" class="headerlink" title="1. 作用"></a>1. 作用</h1><p>打印可执行程序或者动态库的动态库依赖</p><h1 id="2-工作原理"><a href="#2-工作原理" class="headerlink" title="2. 工作原理"></a>2. 工作原理</h1><p>ldd是一个可执行shell脚本，其设置LD_TRACE_LOADED_OBJECTS环境变量为非空值，调用动态链接器ld.so</p><p>例如，为了查看ls命令的依赖，<code>ldd /usr/bin/ls</code></p><p>相当于</p><p><code>LD_TRACE_LOADED_OBJECTS=1 /lib64/ld-linux-x86-64.so.2 /usr/bin/ls</code></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> shell </tag>
+            
+            <tag> linker </tag>
+            
+            <tag> linking </tag>
+            
+            <tag> loader </tag>
+            
+            <tag> loading </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Linux加载器、加载、动态链接器与动态链接</title>
+      <link href="/2024/03/03/linux-loader-loading-linker-linking/"/>
+      <url>/2024/03/03/linux-loader-loading-linker-linking/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-别名和对应的文件"><a href="#1-别名和对应的文件" class="headerlink" title="1. 别名和对应的文件"></a>1. 别名和对应的文件</h1><p>别名包括:</p><p>动态链接器(dynamic linker)，加载器(loader)，动态加载器(dynamic loader)，运行时链接器(run-time linker)，ELF解释器(ELF interpreter)，ld.so，ld-linux.so</p><p>上述这些描述的是同一件事，其对应的文件为:</p><p>ld.so，ld-linux.so，&#x2F;lib&#x2F;ld-linux.so.1，&#x2F;lib&#x2F;ld-linux.so.2，&#x2F;lib64&#x2F;ld-linux-x86-64.so.2</p><p>在现代linux机器上，一般使用的是&#x2F;lib&#x2F;ld-linux.so.2和&#x2F;lib64&#x2F;ld-linux-x86-64.so.2，用于处理ELF格式二进制文件</p><h1 id="2-动态链接器运行方式"><a href="#2-动态链接器运行方式" class="headerlink" title="2. 动态链接器运行方式"></a>2. 动态链接器运行方式</h1><ol><li><p>间接运行: 通过运行一个动态链接的程序或者共享库，ELF文件会将动态链接器存放在.interp段中</p></li><li><p>直接运行: &#x2F;lib&#x2F;ld-linux.so.*  [OPTIONS] [PROGRAM [ARGUMENTS]]</p></li></ol><h1 id="3-动态链接器作用"><a href="#3-动态链接器作用" class="headerlink" title="3. 动态链接器作用"></a>3. 动态链接器作用</h1><p>三步，(1)解析并加载程序所需的共享库依赖，(2)准备运行程序，(3)运行程序</p><h1 id="4-动态链接器解析动态库依赖的过程"><a href="#4-动态链接器解析动态库依赖的过程" class="headerlink" title="4. 动态链接器解析动态库依赖的过程"></a>4. 动态链接器解析动态库依赖的过程</h1><ol><li><p>检查每个依赖名(dependency string)是否包含字符<code>/</code></p><p> 1.1 如果包含，将此依赖名当做相对路径名或者绝对路径名使用</p><p> 1.2 如果不包含，转入第2步</p></li><li><p>依次在以下位置寻找依赖</p><p> 2.1 DT_RPATH(deprecated)</p><p> 2.2 环境变量<strong>LD_LIBRARY_PATH</strong>指定的目录，此变量中以冒号或者分号分隔目录，空目录名表示当前工作目录</p><p> 2.3 二进制文件的DT_RUNPATH属性</p><p> 2.4 &#x2F;etc&#x2F;ld.so.cache</p><p> 2.5 &#x2F;lib，&#x2F;usr&#x2F;lib，&#x2F;lib64，&#x2F;usr&#x2F;lib64 (还可能包括&#x2F;lib&#x2F;x86_64-linux-gnu)</p></li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> linker </tag>
+            
+            <tag> linking </tag>
+            
+            <tag> loader </tag>
+            
+            <tag> loading </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>git stash命令用法</title>
+      <link href="/2024/03/02/git-stash/"/>
+      <url>/2024/03/02/git-stash/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-stash特定文件"><a href="#1-stash特定文件" class="headerlink" title="1. stash特定文件"></a>1. stash特定文件</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash push [-m message] &lt;path&gt;...</span><br></pre></td></tr></table></figure><h1 id="2-展示stash内容"><a href="#2-展示stash内容" class="headerlink" title="2. 展示stash内容"></a>2. 展示stash内容</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash show [-p] &lt;index&gt;</span><br></pre></td></tr></table></figure><p><code>&lt;index&gt;</code>为stash索引号数字，不带<code>-p</code>选项只显示变动文件名，带上<code>-p</code>显示变动内容</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> git </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>git submodule命令用法</title>
+      <link href="/2024/03/02/git-submodule/"/>
+      <url>/2024/03/02/git-submodule/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-含义"><a href="#1-含义" class="headerlink" title="1. 含义"></a>1. 含义</h1><p>submodule指向子模块仓库一个特定的commit，也可以追踪子模块仓库一个特定的分支</p><h1 id="2-常用命令"><a href="#2-常用命令" class="headerlink" title="2. 常用命令"></a>2. 常用命令</h1><h2 id="2-1-添加子模块"><a href="#2-1-添加子模块" class="headerlink" title="2.1 添加子模块"></a>2.1 添加子模块</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git submodule add [-b branch] &lt;repository&gt; [&lt;path&gt;]</span><br></pre></td></tr></table></figure><p>添加<code>&lt;repository&gt;</code>的branch分支到<code>&lt;path&gt;</code>目录</p><h2 id="2-2-clone主仓库"><a href="#2-2-clone主仓库" class="headerlink" title="2.2 clone主仓库"></a>2.2 clone主仓库</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> --recursive &lt;parent-repository&gt;</span><br></pre></td></tr></table></figure><p>在克隆主仓库时同时克隆其中包含的子模块</p><h2 id="2-3-下载主仓库的所有子模块内容"><a href="#2-3-下载主仓库的所有子模块内容" class="headerlink" title="2.3 下载主仓库的所有子模块内容"></a>2.3 下载主仓库的所有子模块内容</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git submodule update --init --recursive</span><br></pre></td></tr></table></figure><h2 id="2-4-更新到子模块远程仓库的状态"><a href="#2-4-更新到子模块远程仓库的状态" class="headerlink" title="2.4 更新到子模块远程仓库的状态"></a>2.4 更新到子模块远程仓库的状态</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git submodule update --remote</span><br></pre></td></tr></table></figure><p>这个命令会改变submodule指向的子模块仓库中的具体commit</p><h2 id="2-5-修改submodule指向的commit"><a href="#2-5-修改submodule指向的commit" class="headerlink" title="2.5 修改submodule指向的commit"></a>2.5 修改submodule指向的commit</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> &lt;path-to-submodule&gt;</span><br><span class="line"></span><br><span class="line">git checkout &lt;some-commit&gt;</span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> &lt;path-to-parent-repository&gt;</span><br><span class="line"></span><br><span class="line">git add &lt;path-to-submodule&gt;</span><br><span class="line"></span><br><span class="line">git commit</span><br></pre></td></tr></table></figure><p>去子模块目录修改commit，然后在主仓库把这个更改commit即可</p><h2 id="2-6-删除子模块"><a href="#2-6-删除子模块" class="headerlink" title="2.6 删除子模块"></a>2.6 删除子模块</h2><p>使用下述三条命令</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">rm</span> &lt;path-to-submodule&gt;</span><br><span class="line"></span><br><span class="line"><span class="built_in">rm</span> -rf .git/modules/&lt;path-to-submodule&gt;</span><br><span class="line"></span><br><span class="line">git config --remove-section submodule.&lt;path-to-submodule&gt;</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> git </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Linux nm命令常见用法</title>
+      <link href="/2024/03/02/linux-nm-command/"/>
+      <url>/2024/03/02/linux-nm-command/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-nm命令"><a href="#1-nm命令" class="headerlink" title="1. nm命令"></a>1. nm命令</h1><p>单词name的简称，用于查看二进制目标文件中的符号信息</p><h1 id="2-输出"><a href="#2-输出" class="headerlink" title="2. 输出"></a>2. 输出</h1><p>三列，分别是(1)符号地址(2)符号类型(3)符号名</p><p>常见符号类型包括(1)”T”，”t”，代码段中的符号(2)”U”(大写字母u)，未定义的符号</p><h1 id="3-常用选项"><a href="#3-常用选项" class="headerlink" title="3. 常用选项"></a>3. 常用选项</h1><h2 id="3-1-A"><a href="#3-1-A" class="headerlink" title="3.1 -A"></a>3.1 <code>-A</code></h2><p>在每一行都显示文件名</p><h2 id="3-2-C"><a href="#3-2-C" class="headerlink" title="3.2 -C"></a>3.2 <code>-C</code></h2><p>符号名demangle</p><h2 id="3-3-u，小写字母u"><a href="#3-3-u，小写字母u" class="headerlink" title="3.3 -u，小写字母u"></a>3.3 <code>-u</code>，小写字母u</h2><p>只显示未定义的符号</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> shell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+  
+  
+</search>
