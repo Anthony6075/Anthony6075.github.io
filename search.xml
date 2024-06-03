@@ -4,6 +4,33 @@
   
     
     <entry>
+      <title>Linux bash的job control功能</title>
+      <link href="/2024/06/03/linux-bash-job-control/"/>
+      <url>/2024/06/03/linux-bash-job-control/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-job-control是什么"><a href="#1-job-control是什么" class="headerlink" title="1. job control是什么"></a>1. job control是什么</h1><p>job control指<strong>暂停执行进程</strong>并稍后<strong>继续执行</strong>它的能力。</p><p>bash给每个pipeline关联一个job。</p><h1 id="2-前台进程和后台进程"><a href="#2-前台进程和后台进程" class="headerlink" title="2. 前台进程和后台进程"></a>2. 前台进程和后台进程</h1><p>前台(foreground)进程指，与当前终端进程的进程组id(process group id)相同的进程； 反之为后台(background)进程。</p><p>区别包括：</p><ol><li><p>前台进程接受<strong>键盘生成的信号</strong>(如ctrl+c生成SIGINT)，后台进程不会接受。</p></li><li><p>只有前台进程被允许<strong>读取终端</strong>，后台进程如果尝试读终端会被发送SIGTTIN信号，它会暂停(suspend)该进程。</p></li></ol><h1 id="3-job-spec"><a href="#3-job-spec" class="headerlink" title="3. job spec"></a>3. job spec</h1><ol><li><p><code>%&lt;n&gt;</code>指第n个job</p></li><li><p><code>%</code>和<code>%%</code>和<code>%+</code>指当前job(即最后一个从foreground暂停或从background启动的job)</p></li><li><p><code>%-</code>指前一个job</p></li></ol><h1 id="4-使用"><a href="#4-使用" class="headerlink" title="4. 使用"></a>4. 使用</h1><h2 id="4-1-Ctrl-Z-suspend字符"><a href="#4-1-Ctrl-Z-suspend字符" class="headerlink" title="4.1 Ctrl+Z(suspend字符)"></a>4.1 <code>Ctrl+Z</code>(suspend字符)</h2><p>暂停进程，同时控制权返回给bash。</p><h2 id="4-2-Ctrl-Y-delayed-suspend字符"><a href="#4-2-Ctrl-Y-delayed-suspend字符" class="headerlink" title="4.2 Ctrl+Y(delayed suspend字符)"></a>4.2 <code>Ctrl+Y</code>(delayed suspend字符)</h2><p>在进程尝试<strong>读终端</strong>时，暂停进程并把控制权返回给bash。</p><h2 id="4-3-bg命令"><a href="#4-3-bg命令" class="headerlink" title="4.3 bg命令"></a>4.3 <code>bg</code>命令</h2><p>用法为<code>bg [&lt;jobspec&gt;...]</code></p><p>使指定的job在后台恢复执行(仿佛它们启动时在命令行加了<code>&amp;</code>)。</p><p>如果不指定jobspec，使用当前job。</p><p>使用<code>&lt;jobspec&gt; &amp;</code>也一样。</p><h2 id="4-4-fg命令"><a href="#4-4-fg命令" class="headerlink" title="4.4 fg命令"></a>4.4 <code>fg</code>命令</h2><p>用法为<code>fg [&lt;jobspec&gt;]</code></p><p>使指定的job在前台恢复执行，它也成为<strong>当前job</strong>。</p><p>如果不指定jobspec，使用当前job。</p><p>仅使用<code>&lt;jobspec&gt;</code>不加fg也一样。</p><h2 id="4-5-jobs命令"><a href="#4-5-jobs命令" class="headerlink" title="4.5 jobs命令"></a>4.5 <code>jobs</code>命令</h2><p>用法为<code>jobs [-lrs] [&lt;jobspec&gt;]</code></p><p>用于列举jobs。带<code>&lt;jobspec&gt;</code>则只列举它，否则列举所有jobs。</p><p>标记<code>+</code>的为当前job，标记<code>-</code>的为前一个job。</p><ul><li><p><code>-l</code> 同时列出进程ID</p></li><li><p><code>-r</code> 只列出running的jobs</p></li><li><p><code>-s</code> 只列出stopped的jobs</p></li></ul><h2 id="4-6-kill命令"><a href="#4-6-kill命令" class="headerlink" title="4.6 kill命令"></a>4.6 <code>kill</code>命令</h2><p>用法为<code>kill [-sigspec] &lt;jobspec&gt;|&lt;pid&gt;</code></p><p>给<code>&lt;jobspec&gt;</code>或者<code>&lt;pid&gt;</code>标识的进程发送信号<code>sigspec</code>。</p><p>如果<code>-sigspec</code>未指定则默认发送<code>SIGTERM</code>。</p><p><code>kill -l|-L</code>可列出信号名和数字的对应关系。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> shell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>南乡子·登京口北固亭有怀</title>
       <link href="/2024/05/18/%E5%8D%97%E4%B9%A1%E5%AD%90%E7%99%BB%E4%BA%AC%E5%8F%A3%E5%8C%97%E5%9B%BA%E4%BA%AD%E6%9C%89%E6%80%80/"/>
       <url>/2024/05/18/%E5%8D%97%E4%B9%A1%E5%AD%90%E7%99%BB%E4%BA%AC%E5%8F%A3%E5%8C%97%E5%9B%BA%E4%BA%AD%E6%9C%89%E6%80%80/</url>
