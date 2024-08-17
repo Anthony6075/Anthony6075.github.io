@@ -22,6 +22,8 @@
             
             <tag> poem(诗歌) </tag>
             
+            <tag> excerpt(摘抄) </tag>
+            
         </tags>
       
     </entry>
@@ -73,6 +75,8 @@
         <tags>
             
             <tag> poem(诗歌) </tag>
+            
+            <tag> excerpt(摘抄) </tag>
             
         </tags>
       
@@ -370,6 +374,8 @@
             
             <tag> poem(诗歌) </tag>
             
+            <tag> excerpt(摘抄) </tag>
+            
         </tags>
       
     </entry>
@@ -392,6 +398,8 @@
       
       
         <tags>
+            
+            <tag> excerpt(摘抄) </tag>
             
             <tag> history(历史) </tag>
             
@@ -419,6 +427,8 @@
         <tags>
             
             <tag> poem(诗歌) </tag>
+            
+            <tag> excerpt(摘抄) </tag>
             
         </tags>
       
