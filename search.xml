@@ -4,6 +4,33 @@
   
     
     <entry>
+      <title>Linux ps常用命令</title>
+      <link href="/2024/12/03/linux-ps-command/"/>
+      <url>/2024/12/03/linux-ps-command/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-查看所有进程"><a href="#1-查看所有进程" class="headerlink" title="1. 查看所有进程"></a>1. 查看所有进程</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ps aux</span><br></pre></td></tr></table></figure><h1 id="2-查看进程启动时间"><a href="#2-查看进程启动时间" class="headerlink" title="2. 查看进程启动时间"></a>2. 查看进程启动时间</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ps -eo pid,lstart,cmd</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      <categories>
+          
+          <category> computer_science </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> shell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>题临安山水</title>
       <link href="/2024/11/26/%E9%A2%98%E4%B8%B4%E5%AE%89%E5%B1%B1%E6%B0%B4/"/>
       <url>/2024/11/26/%E9%A2%98%E4%B8%B4%E5%AE%89%E5%B1%B1%E6%B0%B4/</url>
