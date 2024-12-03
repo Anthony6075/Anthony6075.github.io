@@ -4,11 +4,38 @@
   
     
     <entry>
+      <title>赠卫八处士</title>
+      <link href="/2024/12/03/%E8%B5%A0%E5%8D%AB%E5%85%AB%E5%A4%84%E5%A3%AB/"/>
+      <url>/2024/12/03/%E8%B5%A0%E5%8D%AB%E5%85%AB%E5%A4%84%E5%A3%AB/</url>
+      
+        <content type="html"><![CDATA[<h1><p style="text-align: center;">赠卫八处士</p></h1><h3><p style="text-align: center;">[唐] 王维</p></h3><h2><p style="text-align: center;">人生不相见，动如参与商。</p></h2><h2><p style="text-align: center;">今夕复何夕，共此灯烛光。</p></h2><h2><p style="text-align: center;">少壮能几时，鬓发各已苍。</p></h2><h2><p style="text-align: center;">访旧半为鬼，惊呼热中肠。</p></h2><h2><p style="text-align: center;">焉知二十载，重上君子堂。</p></h2><h2><p style="text-align: center;">昔别君未婚，儿女忽成行。</p></h2><h2><p style="text-align: center;">怡然敬父执，问我来何方。</p></h2><h2><p style="text-align: center;">问答乃未已，驱儿罗酒浆。</p></h2><h2><p style="text-align: center;">夜雨剪春韭，新炊间黄粱。</p></h2><h2><p style="text-align: center;">主称会面难，一举累十觞。</p></h2><h2><p style="text-align: center;">十觞亦不醉，感子故意长。</p></h2><h2><p style="text-align: center;">明日隔山岳，世事两茫茫。</p></h2>]]></content>
+      
+      
+      <categories>
+          
+          <category> literature(文学) </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> poem(诗歌) </tag>
+            
+            <tag> excerpt(摘抄) </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Linux ps常用命令</title>
       <link href="/2024/12/03/linux-ps-command/"/>
       <url>/2024/12/03/linux-ps-command/</url>
       
-        <content type="html"><![CDATA[<h1 id="1-查看所有进程"><a href="#1-查看所有进程" class="headerlink" title="1. 查看所有进程"></a>1. 查看所有进程</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ps aux</span><br></pre></td></tr></table></figure><h1 id="2-查看进程启动时间"><a href="#2-查看进程启动时间" class="headerlink" title="2. 查看进程启动时间"></a>2. 查看进程启动时间</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ps -eo pid,lstart,cmd</span><br></pre></td></tr></table></figure>]]></content>
+        <content type="html"><![CDATA[<h1 id="1-查看所有进程"><a href="#1-查看所有进程" class="headerlink" title="1. 查看所有进程"></a>1. 查看所有进程</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ps aux</span><br></pre></td></tr></table></figure><h1 id="2-查看进程启动时间"><a href="#2-查看进程启动时间" class="headerlink" title="2. 查看进程启动时间"></a>2. 查看进程启动时间</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ps -eo pid,lstart,cmd</span><br></pre></td></tr></table></figure>]]></content>
       
       
       <categories>
