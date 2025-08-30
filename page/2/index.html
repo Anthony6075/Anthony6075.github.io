@@ -51,7 +51,7 @@
   isHome: true,
   isHighlightShrink: false,
   isToc: false,
-  postUpdate: '2025-06-28 11:44:08'
+  postUpdate: '2025-08-30 15:08:51'
 }</script><script>(win=>{
       win.saveToLocal = {
         set: (key, value, ttl) => {
@@ -148,45 +148,7 @@
         }
       }
       detectApple()
-    })(window)</script><meta name="generator" content="Hexo 7.1.1"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/rain.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header" style="background-image: url('/img/wallpaper.png')"><nav id="nav"><span id="blog-info"><a href="/" title="Anthony Li's Blogs"><span class="site-name">Anthony Li's Blogs</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="site-info"><h1 id="site-title">Anthony Li's Blogs</h1><div id="site-subtitle"><span id="subtitle"></span></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/09/26/sanitizer(address-sanitizer-algorithm)/" title="address sanitizer算法原理">address sanitizer算法原理</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-09-26T03:42:04.133Z" title="发表于 2024-09-26 11:42:04">2024-09-26</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/sanitizer/">sanitizer</a></span></div><div class="content">1. 算法原理精简版(TL;DR)1.1 运行时库asan运行时库提供了asan版的malloc和free函数。
-
-malloc函数在分配的内存区域周围会再分配redzones内存并在redzones内存投毒(poisoned)。
-
-free函数对被释放的内存区域投毒(poisoned)，并将它放到临时隔离队列(quarantine queue)中，使它在一段时间内不会被再malloc。
-
-
-1.2 插桩程序中的内存访问操作会做如下转换：
-转换前：
-1*address = ...;  // or: ... = *address;
-
-转换后：
-1234if (IsPoisoned(address)) &#123;  ReportError(address, kAccessSize, kIsWrite);&#125;*address = ...;  // or: ... = *address;
-
-2. 内存映射2.1 内存划分整个内存虚拟地址空间被分为不相交的两类：
-
-Mem：被常规应用代码使用的内存区域。
-
-Shadow：用于保存元数据(称为shadow values)。
-
-
-2.2 内 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/09/23/sanitizer(leak-sanitizer)/" title="leak sanitizer">leak sanitizer</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-09-23T11:43:16.290Z" title="发表于 2024-09-23 19:43:16">2024-09-23</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/sanitizer/">sanitizer</a></span></div><div class="content">1. 简介
-简称LSan
-
-用于发现内存泄漏
-
-已集成到asan中
-
-在性能关键的场景中，LSan也可以在无asan插桩时使用
-
-
-2. 使用方法2.1 using lsan on top of asan像使用asan那样使用，例如a.c存在内存泄漏问题，代码如下：
-123456789#include &lt;stdlib.h&gt;void *p;int main() &#123;  p = malloc(7);  p = 0; // The memory is leaked here.  return 0;&#125;
-
-使用如下方式编译运行：
-1$ clang -fsanitize=address -g a.c -o a &amp;&amp; ./a
-
-如果使用asan编译的程序不需检查内存泄漏(只需检查其他asan bugs)，则使用运行时flagASAN_OPTIONS=detect_leaks=0。
-2.2 lsan单独模式如果只需检查内存泄漏且不想被asan拖慢运行速度，可以使用编译时flag-fsanitize=leak而不是-fsanitize=address，此时不 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/09/23/sanitizer(address-sanitizer)/" title="address sanitizer">address sanitizer</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-09-23T11:40:59.661Z" title="发表于 2024-09-23 19:40:59">2024-09-23</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/sanitizer/">sanitizer</a></span></div><div class="content">1. 简介AddressSantizer简称为asan。
+    })(window)</script><meta name="generator" content="Hexo 7.1.1"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/rain.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header" style="background-image: url('/img/wallpaper.png')"><nav id="nav"><span id="blog-info"><a href="/" title="Anthony Li's Blogs"><span class="site-name">Anthony Li's Blogs</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="site-info"><h1 id="site-title">Anthony Li's Blogs</h1><div id="site-subtitle"><span id="subtitle"></span></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/08/30/sanitizer(address-sanitizer)/" title="address sanitizer">address sanitizer</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-30T06:37:59.548Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/sanitizer/">sanitizer</a></span></div><div class="content">1. 简介AddressSantizer简称为asan。
 用于发现C&#x2F;C++程序中的内存错误。
 asan运行很快，它给程序带来的平均slowdown大约2x。
 asan包括两部分：
@@ -211,103 +173,116 @@ asan包括两部分：
 
 编译时指定-fsanitize=address选项。
 
-为了更高的性能， ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/09/22/%E7%A0%B4%E9%98%B5%E5%AD%90%E5%9B%9B%E5%8D%81%E5%B9%B4%E6%9D%A5%E5%AE%B6%E5%9B%BD/" title="破阵子·四十年来家国">破阵子·四十年来家国</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-09-22T04:29:50.387Z" title="发表于 2024-09-22 12:29:50">2024-09-22</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/literature-%E6%96%87%E5%AD%A6/">literature(文学)</a></span></div><div class="content">破阵子·四十年来家国
+为了更高的性能， ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/08/30/sanitizer(leak-sanitizer)/" title="leak sanitizer">leak sanitizer</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-30T06:37:59.548Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/sanitizer/">sanitizer</a></span></div><div class="content">1. 简介
+简称LSan
 
-[五代] 李煜
+用于发现内存泄漏
 
-四十年来家国，三千里地山河。凤阁龙楼连霄汉，玉树琼枝作烟萝，几曾识干戈？
+已集成到asan中
 
-一旦归为臣虏，沈腰潘鬓消磨。最是仓皇辞庙日，教坊犹奏别离歌，垂泪对宫娥。
-</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/09/22/sanitizer/" title="sanitizer工具">sanitizer工具</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-09-22T04:25:50.636Z" title="发表于 2024-09-22 12:25:50">2024-09-22</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/sanitizer/">sanitizer</a></span></div><div class="content">1. Sanitizer系列简介中文直译：sanity n. 神志正常，精神健全sanitize v. 消毒sanitizer n. 消毒剂
-2. 包含的工具2.1 AddressSanitizer用于发现C&#x2F;C++程序中的内存错误，比如use-after-free和{heap,stack,global}-buffer overflow。
-2.2 LeakSanitizer用于发现内存泄漏，已被集成到AddressSanitizer中。
-2.3 ThreadSanitizer用于发现C&#x2F;C++和Go程序中的数据竞争(data race)。
-2.4 MemorySanitizer用于发现未初始化内存的使用。
-3. 注意
-并不是一定能检测出所有的bug ! ! !
-
-asan&#x2F;tsan&#x2F;msan在同一个程序中最多使用一个
+在性能关键的场景中，LSan也可以在无asan插桩时使用
 
 
-4. 参考文献
-https://github.com/google/sanitizers/wiki
+2. 使用方法2.1 using lsan on top of asan像使用asan那样使用，例如a.c存在内存泄漏问题，代码如下：
+123456789#include &lt;stdlib.h&gt;void *p;int main() &#123;  p = malloc(7);  p = 0; // The memory is leaked here.  return 0;&#125;
 
-https://clang.llvm.org/docs/UsersManual.html#cmdoption-f-no-san ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/08/20/%E8%87%AA%E9%A2%98%E9%87%91%E5%B1%B1%E7%94%BB%E5%83%8F/" title="自题金山画像">自题金山画像</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-08-20T10:11:15.527Z" title="发表于 2024-08-20 18:11:15">2024-08-20</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/literature-%E6%96%87%E5%AD%A6/">literature(文学)</a></span></div><div class="content">自题金山画像
+使用如下方式编译运行：
+1$ clang -fsanitize=address -g a.c -o a &amp;&amp; ./a
 
-[宋] 苏轼
+如果使用asan编译的程序不需检查内存泄漏(只需检查其他asan bugs)，则使用运行时flagASAN_OPTIONS=detect_leaks=0。
+2.2 lsan单独模式如果只需检查内存泄漏且不想被asan拖慢运行速度，可以使用编译时flag-fsanitize=leak而不是-fsanitize=address，此时不 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/08/30/sanitizer(address-sanitizer-algorithm)/" title="address sanitizer算法原理">address sanitizer算法原理</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-30T06:37:59.548Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/sanitizer/">sanitizer</a></span></div><div class="content">1. 算法原理精简版(TL;DR)1.1 运行时库asan运行时库提供了asan版的malloc和free函数。
 
-心似已灰之木，身如不系之舟。
+malloc函数在分配的内存区域周围会再分配redzones内存并在redzones内存投毒(poisoned)。
 
-问汝平生功业，黄州惠州儋州。
-</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/08/17/%E5%B0%91%E5%B9%B4%E8%A1%8C/" title="少年行">少年行</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-08-17T09:44:18.568Z" title="发表于 2024-08-17 17:44:18">2024-08-17</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/literature-%E6%96%87%E5%AD%A6/">literature(文学)</a></span></div><div class="content">少年行
-
-[唐] 王维
-
-（其一）
-
-新丰美酒斗十千，咸阳游侠多少年。
-
-相逢意气为君饮，系马高楼垂柳边。
-
-（其二）
-
-出身仕汉羽林郎，初随骠骑战渔阳。
-
-孰知不向边庭苦，纵死犹闻侠骨香。
-
-（其三）
-
-一身能擘两雕弧，虏骑千重只似无。
-
-偏坐金鞍调白羽，纷纷射杀五单于。
-
-（其四）
-
-汉家君臣欢宴终，高议云台论战功。
-
-天子临轩赐侯印，将军佩出明光宫。</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/07/19/%E8%99%9E%E7%BE%8E%E4%BA%BA%E5%90%AC%E9%9B%A8/" title="虞美人·听雨">虞美人·听雨</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-07-18T18:00:00.342Z" title="发表于 2024-07-19 02:00:00">2024-07-19</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/literature-%E6%96%87%E5%AD%A6/">literature(文学)</a></span></div><div class="content">虞美人·听雨
-
-[宋] 蒋捷
-
-少年听雨歌楼上，红烛昏罗帐。壮年听雨客舟中，江阔云低、断雁叫西风。
-
-而今听雨僧庐下，鬓已星星也。悲欢离合总无情，一任阶前、点滴到天明。</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/06/03/linux-bash-job-control/" title="Bash job control">Bash job control</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-06-03T00:33:50.678Z" title="发表于 2024-06-03 08:33:50">2024-06-03</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a></span></div><div class="content">1. job control是什么job control指暂停执行进程并稍后继续执行它的能力。
-bash给每个pipeline关联一个job。
-2. 前台进程和后台进程前台(foreground)进程指，与当前终端进程的进程组id(process group id)相同的进程； 反之为后台(background)进程。
-区别包括：
-
-前台进程接受键盘生成的信号(如ctrl+c生成SIGINT)，后台进程不会接受。
-
-只有前台进程被允许读取终端，后台进程如果尝试读终端会被发送SIGTTIN信号，它会暂停(suspend)该进程。
+free函数对被释放的内存区域投毒(poisoned)，并将它放到临时隔离队列(quarantine queue)中，使它在一段时间内不会被再malloc。
 
 
-3. job spec
-%&lt;n&gt;指第n个job
+1.2 插桩程序中的内存访问操作会做如下转换：
+转换前：
+1*address = ...;  // or: ... = *address;
 
-%和%%和%+指当前job(即最后一个从foreground暂停或从background启动的job)
+转换后：
+1234if (IsPoisoned(address)) &#123;  ReportError(address, kAccessSize, kIsWrite);&#125;*address = ...;  // or: ... = *address;
 
-%-指前一个job
+2. 内存映射2.1 内存划分整个内存虚拟地址空间被分为不相交的两类：
 
+Mem：被常规应用代码使用的内存区域。
 
-4. 使用4.1 Ctrl+Z(suspend字符)暂停进程，同时控制权返回给bash。
-4.2 Ctrl+Y(delayed suspend字符)在进程尝试读终端时，暂停进程并把控制权返回给bash。
-4.3 bg命令用法为bg [&lt;jobspec&gt;... ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/05/18/%E5%8D%97%E4%B9%A1%E5%AD%90%E7%99%BB%E4%BA%AC%E5%8F%A3%E5%8C%97%E5%9B%BA%E4%BA%AD%E6%9C%89%E6%80%80/" title="南乡子·登京口北固亭有怀">南乡子·登京口北固亭有怀</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-05-18T11:47:02.582Z" title="发表于 2024-05-18 19:47:02">2024-05-18</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/literature-%E6%96%87%E5%AD%A6/">literature(文学)</a></span></div><div class="content">南乡子·登京口北固亭有怀
-
-[宋] 辛弃疾
-
-何处望神州？满眼风光北固楼。千古兴亡多少事？悠悠。不尽长江滚滚流。
+Shadow：用于保存元数据(称为shadow values)。
 
 
-年少万兜鍪，坐断东南战未休。天下英雄谁敌手？曹刘。生子当如孙仲谋。
-</div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/#content-inner">3</a><a class="page-number" href="/page/4/#content-inner">4</a><a class="extend next" rel="next" href="/page/3/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/rain.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Anthony Li</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Anthony6075"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/28/%E6%A1%83%E8%8A%B1%E5%BA%B5%E6%AD%8C/" title="桃花庵歌">桃花庵歌</a><time datetime="2025-06-28T03:39:29.929Z" title="发表于 2025-06-28 11:39:29">2025-06-28</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/12/%E4%B8%B4%E6%B1%9F%E4%BB%99%E5%A4%9C%E5%BD%92%E4%B8%B4%E7%9A%8B/" title="临江仙·夜归临皋">临江仙·夜归临皋</a><time datetime="2025-04-12T09:28:02.121Z" title="发表于 2025-04-12 17:28:02">2025-04-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/06/%E8%87%AA%E9%81%A3/" title="自遣">自遣</a><time datetime="2025-04-06T13:36:35.975Z" title="发表于 2025-04-06 21:36:35">2025-04-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/12/03/%E8%B5%A0%E5%8D%AB%E5%85%AB%E5%A4%84%E5%A3%AB/" title="赠卫八处士">赠卫八处士</a><time datetime="2024-12-03T02:59:09.578Z" title="发表于 2024-12-03 10:59:09">2024-12-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/12/03/linux-ps-command/" title="Linux ps常用命令">Linux ps常用命令</a><time datetime="2024-12-03T02:52:56.842Z" title="发表于 2024-12-03 10:52:56">2024-12-03</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+2.2 内 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/08/30/git-submodule/" title="git submodule命令用法">git submodule命令用法</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-30T06:37:59.544Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/git/">git</a></span></div><div class="content">1. 含义submodule指向子模块仓库一个特定的commit，也可以追踪子模块仓库一个特定的分支
+2. 常用命令2.1 添加子模块1git submodule add [-b branch] &lt;repository&gt; [&lt;path&gt;]
+
+添加&lt;repository&gt;的branch分支到&lt;path&gt;目录
+2.2 clone主仓库1git clone --recursive &lt;parent-repository&gt;
+
+在克隆主仓库时同时克隆其中包含的子模块
+2.3 下载主仓库的所有子模块内容1git submodule update --init --recursive
+
+2.4 更新到子模块远程仓库的状态1git submodule update --remote
+
+这个命令会改变submodule指向的子模块仓库中的具体commit
+2.5 修改submodule指向的commit123456789cd &lt;path-to-submodule&gt;git checkout &lt;some-commit&gt;cd & ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/08/30/linux-gdb-watchpoint/" title="Linux GDB Watchpoint">Linux GDB Watchpoint</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-30T06:37:59.544Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/gdb/">gdb</a></span></div><div class="content">1. 基本概念watchpoint又称data breakpoint，用于监控某个表达式，当它的值改变时stop程序。
+表达式可以是单个变量，也可以包含操作符(任意原语言中有效的操作符)。
+2. 分类2.1 software watchpointGDB单步执行程序，然后每次都计算表达式值。因此程序执行速度可能慢了数百倍，而且它在被监控值改变后的下一条语句处才报告值改变，而非在确切的CPU指令处。
+2.2 hardware watchpoint依赖硬件支持(如x86架构)，不会减慢程序执行速度，且在改变被监控值的CPU指令执行时即能及时报告。
+GDB会尽可能创建hardware watchpoint。
+有时GDB不能创建hardware watchpoint，可能的原因包括：
+
+要监控的内存区域过大。(此时GDB可能把它拆分成多个小的hardware watchpoint)。
+
+已经设置了太多hardware watchpoint。但可能到程序resume执行时(而不是创建watchpoint时)GDB才会报告”Hardware watchpoint : Could not insert ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/08/30/linux-generate-shared-lib/" title="Linux生成动态库">Linux生成动态库</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-30T06:37:59.544Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/linker/">linker</a></span></div><div class="content">1. -fPIC选项所有作为输入的目标文件和静态库在编译时必须添加了-fPIC选项，才能生成动态库。
+2. 生成动态链接库使用g++命令把多个静态库和目标文件生成动态库
+1234567g++ -Wl,--whole-archive -l:&lt;libfirst.a&gt; -l:&lt;libsecond.a&gt; ...    -Wl,--no-whole-archive    -l:&lt;libthird.a&gt; ...    &lt;object_first.o&gt; &lt;object_second.o&gt; ...    -Wl,-L&lt;lib_path&gt;    -shared    -o &lt;libshared.so&gt;
+
+
+-Wl,--whole-archive后指定需要包括其中所有目标文件的库
+
+-Wl,--no-whole-archive用以取消-Wl,--whole-archive的后续作用
+
+-Wl,-L&lt;lib_path&gt;用以添加库文件查找目录
+
+-shared表明此次链接要创建一个动态库
+
+-o &lt;libsh ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/08/30/linux-generate-static-lib/" title="Linux生成静态库">Linux生成静态库</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-30T06:37:59.544Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/linker/">linker</a></span></div><div class="content">1. 使用ar -M [ &lt; merge.script ]命令写一个脚本merge.script，将脚本重定向给ar -M命令的stdin。
+使用create传入输出的静态库文件名，addlib传入输入的静态库，addmod传入输入的目标文件，最后调用save和end。
+123456789create &lt;libmerged.a&gt;addlib &lt;libfirst.a&gt;addlib &lt;libsecond.a&gt;...addmod &lt;object_first.o&gt;addmod &lt;object_second.o&gt;...saveend
+
+2. 注意排列顺序把必须包括其所有符号的输入库放在前面，因为在后面库中包含重复符号名的时候可能直接丢弃以前面为准。
+3. 参考
+stackoverflow
+
+文档
+
+
+</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/08/30/linux-ldd-command/" title="Linux ldd命令使用方法">Linux ldd命令使用方法</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-30T06:37:59.544Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/linker/">linker</a></span></div><div class="content">1. 作用打印可执行程序或者动态库的动态库依赖
+2. 工作原理ldd是一个可执行shell脚本，其设置LD_TRACE_LOADED_OBJECTS环境变量为非空值，调用动态链接器ld.so
+例如，为了查看ls命令的依赖，ldd /usr/bin/ls
+相当于
+LD_TRACE_LOADED_OBJECTS=1 /lib64/ld-linux-x86-64.so.2 /usr/bin/ls
+</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/08/30/linux-ld-command/" title="Linux ld命令使用方法">Linux ld命令使用方法</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-30T06:37:59.544Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/linker/">linker</a></span></div><div class="content">1. ld命令: linux链接器作用: 将一系列目标文件(.o)和静态库文件(.a)链接起来(动态库文件.so也可能作为ld的输入文件)
+2. 常用选项注意：对于单字母的选项(如-l等)，选项的参数直接跟在选项之后，用不用空格分隔都可以。
+2.1 -l &lt;namespec&gt;或者--library=&lt;namespec&gt;使用&lt;namespec&gt;标识的库文件(动态库lib.so优先于静态库lib.a)。
+如果&lt;namespec&gt;是:filename的形式，查找文件名为filename的库文件。
+2.2 -L &lt;searchdir&gt;或者--library-path=&lt;searchdir&gt;添加一个查找库文件(和控制脚本)的目录&lt;searchdir&gt;以供-l选项使用，多个此选项之间的顺序关系为在命令行出现的顺序，最后为默认查找目录。
+默认查找目录是系统依赖的，较为复杂，如&#x2F;lib&#x2F;x86_64-linux-gnu。
+2.3 -rpath=&lt;dir&gt;添加&lt;dir&gt;到此次生 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/08/30/linux-loader-loading-linker-linking/" title="Linux加载器、加载、动态链接器与动态链接">Linux加载器、加载、动态链接器与动态链接</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-30T06:37:59.544Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/">computer_science</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/computer-science/linker/">linker</a></span></div><div class="content">1. 别名和对应的文件别名包括:
+动态链接器(dynamic linker)，加载器(loader)，动态加载器(dynamic loader)，运行时链接器(run-time linker)，ELF解释器(ELF interpreter)，ld.so，ld-linux.so
+上述这些描述的是同一件事，其对应的文件为:
+ld.so，ld-linux.so，&#x2F;lib&#x2F;ld-linux.so.1，&#x2F;lib&#x2F;ld-linux.so.2，&#x2F;lib64&#x2F;ld-linux-x86-64.so.2
+在现代linux机器上，一般使用的是&#x2F;lib&#x2F;ld-linux.so.2和&#x2F;lib64&#x2F;ld-linux-x86-64.so.2，用于处理ELF格式二进制文件
+2. 动态链接器运行方式
+间接运行: 通过运行一个动态链接的程序或者共享库，ELF文件会将动态链接器存放在.interp段中
+
+直接运行: &#x2F;lib&#x2F;ld-linux.so.*  [OPTIONS] [PROGRAM [ARGUM ...</div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/#content-inner">3</a><a class="page-number" href="/page/4/#content-inner">4</a><a class="extend next" rel="next" href="/page/3/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/rain.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Anthony Li</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Anthony6075"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/08/30/linux-ps-command/" title="Linux ps常用命令">Linux ps常用命令</a><time datetime="2025-08-30T06:37:59.552Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/08/30/linux-tmux-command/" title="Linux tmux命令常见用法">Linux tmux命令常见用法</a><time datetime="2025-08-30T06:37:59.552Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/08/30/sanitizer(memory-sanitizer)/" title="memory sanitizer">memory sanitizer</a><time datetime="2025-08-30T06:37:59.552Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/08/30/%E8%B5%A0%E5%8D%AB%E5%85%AB%E5%A4%84%E5%A3%AB/" title="赠卫八处士">赠卫八处士</a><time datetime="2025-08-30T06:37:59.552Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/08/30/%E9%A2%98%E4%B8%B4%E5%AE%89%E5%B1%B1%E6%B0%B4/" title="题临安山水">题临安山水</a><time datetime="2025-08-30T06:37:59.552Z" title="发表于 2025-08-30 14:37:59">2025-08-30</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
             <i class="fas fa-folder-open"></i>
             <span>分类</span>
             
             </div>
             <ul class="card-category-list" id="aside-cat-list">
             <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/computer-science/"><span class="card-category-list-name">computer_science</span><span class="card-category-list-count">26</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/computer-science/gdb/"><span class="card-category-list-name">gdb</span><span class="card-category-list-count">6</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/computer-science/git/"><span class="card-category-list-name">git</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/computer-science/linker/"><span class="card-category-list-name">linker</span><span class="card-category-list-count">6</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/computer-science/sanitizer/"><span class="card-category-list-name">sanitizer</span><span class="card-category-list-count">5</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/literature-%E6%96%87%E5%AD%A6/"><span class="card-category-list-name">literature(文学)</span><span class="card-category-list-count">13</span></a></li>
-            </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/loader/" style="font-size: 1.16em; color: #999b9e">loader</a> <a href="/tags/poem-%E8%AF%97%E6%AD%8C/" style="font-size: 1.33em; color: #99a2af">poem(诗歌)</a> <a href="/tags/c/" style="font-size: 1.21em; color: #999ea4">c++</a> <a href="/tags/shell/" style="font-size: 1.44em; color: #99a7ba">shell</a> <a href="/tags/history-%E5%8E%86%E5%8F%B2/" style="font-size: 1.1em; color: #999">history(历史)</a> <a href="/tags/linux/" style="font-size: 1.5em; color: #99a9bf">linux</a> <a href="/tags/git/" style="font-size: 1.16em; color: #999b9e">git</a> <a href="/tags/sanitizer/" style="font-size: 1.21em; color: #999ea4">sanitizer</a> <a href="/tags/gdb/" style="font-size: 1.27em; color: #99a0a9">gdb</a> <a href="/tags/linker/" style="font-size: 1.27em; color: #99a0a9">linker</a> <a href="/tags/excerpt-%E6%91%98%E6%8A%84/" style="font-size: 1.39em; color: #99a4b4">excerpt(摘抄)</a></div></div><div class="card-widget card-archives"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span><a class="card-more-btn" href="/archives/" title="查看更多">
-    <i class="fas fa-angle-right"></i></a></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2025/06/"><span class="card-archive-list-date">六月 2025</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2025/04/"><span class="card-archive-list-date">四月 2025</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/12/"><span class="card-archive-list-date">十二月 2024</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/11/"><span class="card-archive-list-date">十一月 2024</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/10/"><span class="card-archive-list-date">十月 2024</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/09/"><span class="card-archive-list-date">九月 2024</span><span class="card-archive-list-count">6</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/08/"><span class="card-archive-list-date">八月 2024</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/07/"><span class="card-archive-list-date">七月 2024</span><span class="card-archive-list-count">1</span></a></li></ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">39</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-06-28T03:44:07.886Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By Anthony Li</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button><button id="sakura-btn" type="button" title="樱花是否飘落" sakura-falling="true" onclick="toggle_sakura()"><img class="fas fa-sakura" id="sakura-icon" src="/img/sakura.png" alt="sakura" style="max-height:100%; max-width:100%; padding: 8px;"></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>window.typedJSFn = {
+            </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/linker/" style="font-size: 1.27em; color: #99a0a9">linker</a> <a href="/tags/gdb/" style="font-size: 1.27em; color: #99a0a9">gdb</a> <a href="/tags/excerpt-%E6%91%98%E6%8A%84/" style="font-size: 1.39em; color: #99a4b4">excerpt(摘抄)</a> <a href="/tags/c/" style="font-size: 1.21em; color: #999ea4">c++</a> <a href="/tags/poem-%E8%AF%97%E6%AD%8C/" style="font-size: 1.33em; color: #99a2af">poem(诗歌)</a> <a href="/tags/shell/" style="font-size: 1.44em; color: #99a7ba">shell</a> <a href="/tags/sanitizer/" style="font-size: 1.21em; color: #999ea4">sanitizer</a> <a href="/tags/git/" style="font-size: 1.16em; color: #999b9e">git</a> <a href="/tags/loader/" style="font-size: 1.16em; color: #999b9e">loader</a> <a href="/tags/linux/" style="font-size: 1.5em; color: #99a9bf">linux</a> <a href="/tags/history-%E5%8E%86%E5%8F%B2/" style="font-size: 1.1em; color: #999">history(历史)</a></div></div><div class="card-widget card-archives"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2025/08/"><span class="card-archive-list-date">八月 2025</span><span class="card-archive-list-count">39</span></a></li></ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">39</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-08-30T07:08:50.899Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By Anthony Li</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button><button id="sakura-btn" type="button" title="樱花是否飘落" sakura-falling="true" onclick="toggle_sakura()"><img class="fas fa-sakura" id="sakura-icon" src="/img/sakura.png" alt="sakura" style="max-height:100%; max-width:100%; padding: 8px;"></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>window.typedJSFn = {
   init: (str) => {
     window.typed = new Typed('#subtitle', Object.assign({
       strings: str,
